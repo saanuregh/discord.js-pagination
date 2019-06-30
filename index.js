@@ -2,7 +2,7 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 	if (!msg.channel) throw new Error('Channel is inaccessible.');
 	let page = 0;
 	const curPage = await msg.channel.send(pages[page].setFooter(`Page ${page + 1} / ${pages.length}`));
-	await postReactionEmojis(curPage, emojiList);
+	for (const emoji of emojiList) await curPage.react(emoji);
 	const reactionCollector = curPage.createReactionCollector(
 		(reaction, user) => emojiList.includes(reaction.emoji.name) && user.id === msg.author.id,
 		{ time: timeout }
@@ -24,10 +24,4 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 	reactionCollector.on('end', () => curPage.reactions.removeAll());
 	return curPage;
 };
-
-const postReactionEmojis = async (msg, emojiList) => {
-	await msg.react(emojiList.shift());
-	if (emojiList.length > 0) postReactionEmojis(msg, emojiList);
-};
-
 module.exports = paginationEmbed;
