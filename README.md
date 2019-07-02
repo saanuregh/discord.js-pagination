@@ -38,4 +38,5 @@ paginationEmbed(msg, pages, emojiList, timeout);
 // There you go, now you have paged embeds
 ```
 # Preview
-![Here is the package used for paging song queue.](https://raw.githubusercontent.com/saanuregh/discord.js-pagination/master/example/demo.png)
+![Demo](https://raw.githubusercontent.com/saanuregh/discord.js-pagination/master/example/demo.png)
+Here is the package used for paging song queue.
