@@ -23,7 +23,7 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 		}
 		curPage.edit(pages[page].setFooter(`Page ${page + 1} / ${pages.length}`));
 	});
-	reactionCollector.on('end', () => curPage.reactions.removeAll());
+	reactionCollector.on('end', () => curPage.clearReactions());
 	return curPage;
 };
 module.exports = paginationEmbed;
