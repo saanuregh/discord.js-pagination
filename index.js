@@ -13,10 +13,10 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 		reaction.users.remove(msg.author);
 		switch (reaction.emoji.name) {
 			case emojiList[0]:
-				page = page > 0 ? --page : pages.length - 1;
+				page = page > 0 ? page - 1 : pages.length - 1;
 				break;
 			case emojiList[1]:
-				page = page + 1 < pages.length ? ++page : 0;
+				page = page + 1 < pages.length ? page + 1 : 0;
 				break;
 			default:
 				break;
