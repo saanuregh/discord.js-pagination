@@ -10,7 +10,8 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 		{ time: timeout }
 	);
 	reactionCollector.on('collect', reaction => {
-		reaction.users.remove(msg.author);
+		if (msg.channel.type !== "dm")
+			reaction.users.remove(msg.author);
 		switch (reaction.emoji.name) {
 			case emojiList[0]:
 				page = page > 0 ? --page : pages.length - 1;
@@ -24,7 +25,7 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 		curPage.edit(pages[page].setFooter(`Page ${page + 1} / ${pages.length}`));
 	});
 	reactionCollector.on('end', () => {
-		if (!curPage.deleted) {
+		if (!curPage.deleted && msg.channel.type !== "dm") {
 			curPage.reactions.removeAll()
 		}
 	});
