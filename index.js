@@ -53,8 +53,8 @@ const paginationEmbed = async (
 		(reaction, user) => collectorFilter(reaction, user, emojiList),
 		{ time: timeout, ...rest }
 	);
-	reactionCollector.on('collect', async reaction => {
-		reaction.users.remove(msg.author);
+	reactionCollector.on('collect', async (reaction, user) => {
+		await reaction.users.remove(user.id);
 		page = await pageResolver(pages, emojiList, page, reaction);
 
 		if (page >= 0 && page < pages.length && !curPage.deleted)
