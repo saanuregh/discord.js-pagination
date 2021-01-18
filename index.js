@@ -47,7 +47,12 @@ const paginationEmbed = async (
 	let page = 0;
 	pages[page].setFooter(footerResolver(page, pages.length));
 	const curPage = useUtil ? await msg.util.reply(pages[page]) : await msg.channel.send(pages[page]);
-	for (const emoji of emojiList) await curPage.react(emoji);
+	// This will fail if the message is deleted before the reactions are all added, bail before reactor creation
+	try {
+		for (const emoji of emojiList) await curPage.react(emoji);
+	} catch (error) {
+		return curPage;
+	}
 	const reactionCollector = curPage.createReactionCollector(
 		(reaction, user) => collectorFilter(reaction, user, emojiList),
 		{ time: timeout, ...rest }
