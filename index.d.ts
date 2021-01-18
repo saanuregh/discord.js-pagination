@@ -1,9 +1,9 @@
-import { Message, MessageEmbed, MessageReaction, ReactionCollectorOptions, User } from "discord.js";
+import { EmojiIdentifierResolvable, Message, MessageEmbed, MessageReaction, ReactionCollectorOptions, User } from "discord.js";
 
 interface PaginationOptions extends ReactionCollectorOptions {
   deleteOnEnd?: boolean,
   useUtil?: boolean,
-  emojiList?: string[],
+  emojiList?: EmojiIdentifierResolvable[],
   collectorFilter?(reaction: MessageReaction, user: User): boolean | Promise<boolean>
   footerResolver?(pageIndex: number, pagesLength: number): string,
   pageResolver?(msg: Message, pages: MessageEmbed[], emojiList: string[], currentPageIndex: number, reaction: MessageReaction): number | Promise<number>

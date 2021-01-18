@@ -1,7 +1,7 @@
 /**
  *
  * @param {MessageEmbed[]} pages
- * @param {string[]} emojiList
+ * @param {EmojiIdentifierResolvable[]} emojiList
  * @param {number} currentPageIndex
  * @param {MessageReaction} reaction
  * @returns {number} - the new page index.
