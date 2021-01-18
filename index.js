@@ -50,13 +50,6 @@ const paginationEmbed = async (
 							&& (collectorFilter ? collectorFilter(reaction, user, emojiList) : true),
 		{ time: timeout, ...rest }
 	);
-	// This will fail if the message is deleted before the reactions are all added, bail before reactor creation
-	try {
-		for (const emoji of emojiList) await curPage.react(emoji);
-	} catch (error) {
-		reactionCollector.stop();
-		return curPage;
-	}
 	reactionCollector.on('collect', async (reaction, user) => {
 		await reaction.users.remove(user.id);
 		page = await pageResolver(pages, emojiList, page, reaction);
@@ -72,6 +65,13 @@ const paginationEmbed = async (
 				curPage.reactions.removeAll();
 		}
 	});
+	// This will fail if the message is deleted before the reactions are all added, bail before reactor creation
+	try {
+		for (const emoji of emojiList) await curPage.react(emoji);
+	} catch (error) {
+		reactionCollector.stop();
+		return curPage;
+	}
 	return curPage;
 };
 
