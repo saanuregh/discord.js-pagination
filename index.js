@@ -45,7 +45,6 @@ const paginationEmbed = async (
 										} = {}) => {
 	if (!msg && !msg.channel) throw new Error('Channel is inaccessible.');
 	if (!pages) throw new Error('Pages are not given.');
-	if (emojiList.length !== 2) throw new Error('Need two emojis.');
 	let page = 0;
 	pages[page].setFooter(footerResolver(page, pages.length));
 	const curPage = useUtil ? await msg.util.reply(pages[page]) : await msg.channel.send(pages[page]);
