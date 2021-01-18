@@ -52,9 +52,10 @@ const paginationEmbed = async (
 	);
 	reactionCollector.on('collect', async (reaction, user) => {
 		await reaction.users.remove(user.id);
-		page = await pageResolver(msg, pages, emojiList, page, reaction);
+		const currentPage = page;
+		page = await pageResolver(curPage, pages, emojiList, page, reaction);
 
-		if (page >= 0 && page < pages.length && !curPage.deleted)
+		if ( !curPage.deleted && currentPage != page && page >= 0 && page < pages.length)
 			curPage.edit(pages[page].setFooter(footerResolver(page, pages.length)));
 	});
 	reactionCollector.on('end', async () => {
@@ -69,8 +70,8 @@ const paginationEmbed = async (
 	try {
 		for (const emoji of emojiList) await curPage.react(emoji);
 	} catch (error) {
-		reactionCollector.stop();
-		return curPage;
+			reactionCollector.stop();
+			throw error;
 	}
 	return curPage;
 };
