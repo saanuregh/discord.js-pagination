@@ -30,7 +30,6 @@ const defaultCollectorFilter = (reaction, user, emojiList) => emojiList.includes
  * @param {Message} msg - the message
  * @param {MessageEmbed[]} pages - array of message embeds to use as each page.
  * @param {PaginationOptions} paginationOptions - exposes collector options, provides customization.
- * @param {Function} footerResolver - Takes the current page index and number of pages, returns a string to be used for the footer.
  */
 const paginationEmbed = async (
 										msg, pages,
