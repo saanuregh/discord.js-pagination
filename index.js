@@ -6,7 +6,7 @@
  * @param {MessageReaction} reaction
  * @returns {number} - the new page index.
  */
-const defaultPageResolver = async (pages, emojiList, currentPageIndex, reaction) => {
+const defaultPageResolver = async (_, pages, emojiList, currentPageIndex, reaction) => {
 	let newPage = currentPageIndex;
 	switch (reaction.emoji.name) {
 		case emojiList[0]:
@@ -52,7 +52,7 @@ const paginationEmbed = async (
 	);
 	reactionCollector.on('collect', async (reaction, user) => {
 		await reaction.users.remove(user.id);
-		page = await pageResolver(pages, emojiList, page, reaction);
+		page = await pageResolver(msg, pages, emojiList, page, reaction);
 
 		if (page >= 0 && page < pages.length && !curPage.deleted)
 			curPage.edit(pages[page].setFooter(footerResolver(page, pages.length)));
