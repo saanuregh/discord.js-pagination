@@ -5,8 +5,8 @@ interface PaginationOptions extends ReactionCollectorOptions {
   useUtil?: boolean,
   emojiList?: string[],
   collectorFilter?(reaction: MessageReaction, user: User): boolean | Promise<boolean>
-  footerResolver(pageIndex: number, pagesLength: number): string,
-  pageResolver(msg: Message, pages: MessageEmbed[], emojiList: string[], currentPageIndex: number, reaction: MessageReaction): number | Promise<number>
+  footerResolver?(pageIndex: number, pagesLength: number): string,
+  pageResolver?(msg: Message, pages: MessageEmbed[], emojiList: string[], currentPageIndex: number, reaction: MessageReaction): number | Promise<number>
 }
 
 declare function paginationEmbed (msg: Message, pages: MessageEmbed[], paginationOptions?: PaginationOptions): Promise<Message>
