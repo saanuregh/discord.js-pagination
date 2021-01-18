@@ -51,6 +51,8 @@ const paginationEmbed = async (
 		{ time: timeout, ...rest }
 	);
 	reactionCollector.on('collect', async (reaction, user) => {
+		// In case a react deletes the curPage msg in the pageResolver and another react is quickly made.
+		if (curPage.deleted) return;
 		await reaction.users.remove(user.id);
 		const currentPage = page;
 		page = await pageResolver(curPage, pages, emojiList, page, reaction);
