@@ -4,7 +4,7 @@ interface PaginationOptions extends ReactionCollectorOptions {
   deleteOnEnd?: boolean,
   useUtil?: boolean,
   emojiList?: string[],
-  collectorFilter(reaction: MessageReaction, user: User): boolean | Promise<boolean>
+  collectorFilter?(reaction: MessageReaction, user: User): boolean | Promise<boolean>
   footerResolver(pageIndex: number, pagesLength: number): string,
   pageResolver(pages: MessageEmbed[], emojiList: string[], currentPageIndex: number, reaction: MessageReaction): number | Promise<number>
 }
