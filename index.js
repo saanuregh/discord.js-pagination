@@ -49,9 +49,9 @@ const paginationEmbed = async (msg, pages,
 	if (!pages) throw new Error('Pages are not given.');
 	let page = 0;
 	pages[page].setFooter(footerResolver(page, pages.length));
-	const curPage = await sendMessage(msg, pages[paghe]);
+	const curPage = await sendMessage(msg, pages[page]);
 	const reactionCollector = curPage.createReactionCollector(
-		(reaction, user) => await collectorFilter(reaction, user, emojiList),
+		async (reaction, user) => await collectorFilter(reaction, user, emojiList),
 		{ time: timeout, ...rest }
 	);
 	reactionCollector.on('collect', async (reaction, user) => {
