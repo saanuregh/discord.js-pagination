@@ -21,7 +21,11 @@ const defaultPageResolver = async (_, pages, emojiList, currentPageIndex, reacti
 	return newPage;
 };
 
-const defaultFooterResolver = (currentPageIndex, pagesLength) =>`Page ${currentPageIndex + 1} / ${pagesLength}`;
+const defaultFooterResolver = (currentPageIndex, pagesLength) => `Page ${currentPageIndex + 1} / ${pagesLength}`;
+
+const defaultSendMessage = async (message, pageEmbed) => await message.channel.send(pageEmbed);
+
+const defaultCollectorFilter = (reaction, user, emojiList) => emojiList.includes(reaction.emoji.name) && !user.bot;
 
 /**
  *
@@ -29,52 +33,42 @@ const defaultFooterResolver = (currentPageIndex, pagesLength) =>`Page ${currentP
  * @param {MessageEmbed[]} pages - array of message embeds to use as each page.
  * @param {PaginationOptions} paginationOptions - exposes collector options, provides customization.
  */
-const paginationEmbed = async (
-										msg, pages,
-										{
-											deleteOnEnd = false, useUtil = false,
-											emojiList = ['⏪', '⏩'],
-											collectorFilter = null,
-											footerResolver = defaultFooterResolver,
-											pageResolver = defaultPageResolver,
-											timeout = 120000,
-											...rest
-										} = {}) => {
+const paginationEmbed = async (msg, pages,
+	{
+		deleteOnEnd = false, useUtil = false,
+		emojiList = ['⏪', '⏩'],
+		footerResolver = defaultFooterResolver,
+		sendMessage = defaultSendMessage,
+		collectorFilter = defaultCollectorFilter,
+		pageResolver = defaultPageResolver,
+		timeout = 120000,
+		...rest
+	} = {}
+) => {
 	if (!msg && !msg.channel) throw new Error('Channel is inaccessible.');
 	if (!pages) throw new Error('Pages are not given.');
 	let page = 0;
 	pages[page].setFooter(footerResolver(page, pages.length));
-	const curPage = useUtil ? await msg.util.reply(pages[page]) : await msg.channel.send(pages[page]);
+	const curPage = await sendMessage(msg, pages[paghe]);
 	const reactionCollector = curPage.createReactionCollector(
-		(reaction, user) => emojiList.includes(reaction.emoji.name) && !user.bot
-							&& (collectorFilter ? collectorFilter(reaction, user, emojiList) : true),
+		(reaction, user) => await collectorFilter(reaction, user, emojiList),
 		{ time: timeout, ...rest }
 	);
 	reactionCollector.on('collect', async (reaction, user) => {
-		// In case a react deletes the curPage msg in the pageResolver and another react is quickly made.
-		if (curPage.deleted) return;
 		await reaction.users.remove(user.id);
 		const currentPage = page;
-		page = await pageResolver(curPage, pages, emojiList, page, reaction);
 
+		page = await pageResolver(curPage, pages, emojiList, page, reaction);
 		if ( !curPage.deleted && currentPage != page && page >= 0 && page < pages.length)
-			curPage.edit(pages[page].setFooter(footerResolver(page, pages.length)));
+			await curPage.edit(pages[page].setFooter(footerResolver(page, pages.length)));
 	});
 	reactionCollector.on('end', async () => {
-		if (!curPage.deleted) {
-			if (deleteOnEnd)
-				await curPage.delete();
-			else
-				curPage.reactions.removeAll();
-		}
+		if (curPage.deletable && deleteOnEnd)
+			await curPage.delete();
+		else
+			curPage.reactions.removeAll();
 	});
-	// This will fail if the message is deleted before the reactions are all added, bail before reactor creation
-	try {
-		for (const emoji of emojiList) await curPage.react(emoji);
-	} catch (error) {
-			reactionCollector.stop();
-			throw error;
-	}
+	for (const emoji of emojiList) await curPage.react(emoji);
 	return curPage;
 };
 
