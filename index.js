@@ -65,9 +65,9 @@ const paginationEmbed = async (msg, pages,
       currentPageIndex = await pageResolver(paginatedEmbedMessage, pages, emojiList, currentPageIndex, reaction);
       if ( !paginatedEmbedMessage.deleted && currentPage != currentPageIndex && currentPageIndex >= 0 && currentPageIndex < pages.length)
         await paginatedEmbedMessage.edit(pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length)));
-		} catch(error) {
-			await collectErrorHandler(error);
-		}
+    } catch(error) {
+      await collectErrorHandler(error);
+    }
   });
   reactionCollector.on('end', async () => {
     if (paginatedEmbedMessage.deletable && deleteOnEnd)
