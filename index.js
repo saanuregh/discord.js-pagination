@@ -35,7 +35,7 @@ const defaultCollectorFilter = (reaction, user, emojiList) => emojiList.includes
  */
 const paginationEmbed = async (msg, pages,
 	{
-		deleteOnEnd = false, useUtil = false,
+		deleteOnEnd = false,
 		emojiList = ['⏪', '⏩'],
 		footerResolver = defaultFooterResolver,
 		sendMessage = defaultSendMessage,
