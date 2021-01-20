@@ -23,7 +23,7 @@ const defaultPageResolver = async (_, pages, emojiList, currentPageIndex, reacti
 
 const defaultFooterResolver = (currentPageIndex, pagesLength) => `Page ${currentPageIndex + 1} / ${pagesLength}`;
 
-const defaultSendMessage = async (message, pageEmbed) => await message.channel.send(pageEmbed);
+const defaultSendMessage = (message, pageEmbed) => message.channel.send(pageEmbed);
 
 const defaultCollectorFilter = (reaction, user, emojiList) => emojiList.includes(reaction.emoji.name) && !user.bot;
 
