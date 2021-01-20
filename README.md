@@ -13,6 +13,7 @@ A simple utility to paginate discord embeds. Built on discord.js@^12.0.0 (master
 * `npm install discord.js-pagination`
 
 # Usage
+
 __Basic Bot Example__
 ```js
 // Import the discord.js-pagination package
@@ -20,21 +21,25 @@ const paginationEmbed = require('discord.js-pagination');
 
 // Use either MessageEmbed or RichEmbed to make pages
 // Keep in mind that Embeds should't have their footers set since the pagination method sets page info there
-const { MessageEmbed } = require('discord.js');
-const embed1 = new MessageEmbed();
+const myPages = [];
 
-// Create an array of embeds
-pages = [
-	embed1,
-	embed2,
-	//....
-	embedn
-];
+for (let i = 0; i < 10; i++) {
+	const pageEmbed = new MessageEmbed();
+	pageEmbed
+		.setTitle(`This embed is index ${i}!`)
+		.setDescription(`That means it is page #${i+1}`);
+	myPages.push(pageEmbed);
+}
+
+const footerResolver = (currentPageIndex, pagesLength) =>
+	`Page ${currentPageIndex + 1} / ${pagesLength}: ${(currentPageIndex % 2 === 0 ? 'This page is even!' : 'This page is odd!')}`;
+
+const collectErrorHandler = (error) => console.log(error);
 
 // Call the paginationEmbed method, first two arguments are required
-// emojiList is the pageturners defaults to ['⏪', '⏩']
-// timeout is the time till the reaction collectors are active, after this you can't change pages (in ms), defaults to 120000
-paginationEmbed(msg, pages, emojiList, timeout);
+// The third argument is the PaginationOptions - all optional
+// Any additional arguments in PaginationOptions are passed down as ReactionCollectorOptions
+paginationEmbed(msg, myPages, { emojiList, footerResolver, collectErrorHandler, timeout: 120000, idle: 60000 });
 // There you go, now you have paged embeds
 ```
 # Preview
