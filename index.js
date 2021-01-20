@@ -49,8 +49,8 @@ const paginationEmbed = async (msg, pages,
 	if (!pages) throw new Error('Pages are not given.');
 	let currentPageIndex = 0;
 	pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length));
-	const curPage = await sendMessage(msg, pages[currentPageIndex]);
-	const reactionCollector = curPage.createReactionCollector(
+	const paginatedEmbedMessage = await sendMessage(msg, pages[currentPageIndex]);
+	const reactionCollector = paginatedEmbedMessage.createReactionCollector(
 		async (reaction, user) => await collectorFilter(reaction, user, emojiList),
 		{ time: timeout, ...rest }
 	);
@@ -58,18 +58,18 @@ const paginationEmbed = async (msg, pages,
 		await reaction.users.remove(user.id);
 		const currentPage = currentPageIndex;
 
-		currentPageIndex = await pageResolver(curPage, pages, emojiList, currentPageIndex, reaction);
-		if ( !curPage.deleted && currentPage != currentPageIndex && currentPageIndex >= 0 && currentPageIndex < pages.length)
-			await curPage.edit(pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length)));
+		currentPageIndex = await pageResolver(paginatedEmbedMessage, pages, emojiList, currentPageIndex, reaction);
+		if ( !paginatedEmbedMessage.deleted && currentPage != currentPageIndex && currentPageIndex >= 0 && currentPageIndex < pages.length)
+			await paginatedEmbedMessage.edit(pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length)));
 	});
 	reactionCollector.on('end', async () => {
-		if (curPage.deletable && deleteOnEnd)
-			await curPage.delete();
+		if (paginatedEmbedMessage.deletable && deleteOnEnd)
+			await paginatedEmbedMessage.delete();
 		else
-			curPage.reactions.removeAll();
+			paginatedEmbedMessage.reactions.removeAll();
 	});
-	for (const emoji of emojiList) await curPage.react(emoji);
-	return curPage;
+	for (const emoji of emojiList) await paginatedEmbedMessage.react(emoji);
+	return paginatedEmbedMessage;
 };
 
 module.exports = paginationEmbed;
