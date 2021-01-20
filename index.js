@@ -47,20 +47,20 @@ const paginationEmbed = async (msg, pages,
 ) => {
 	if (!msg && !msg.channel) throw new Error('Channel is inaccessible.');
 	if (!pages) throw new Error('Pages are not given.');
-	let page = 0;
-	pages[page].setFooter(footerResolver(page, pages.length));
-	const curPage = await sendMessage(msg, pages[page]);
+	let currentPageIndex = 0;
+	pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length));
+	const curPage = await sendMessage(msg, pages[currentPageIndex]);
 	const reactionCollector = curPage.createReactionCollector(
 		async (reaction, user) => await collectorFilter(reaction, user, emojiList),
 		{ time: timeout, ...rest }
 	);
 	reactionCollector.on('collect', async (reaction, user) => {
 		await reaction.users.remove(user.id);
-		const currentPage = page;
+		const currentPage = currentPageIndex;
 
-		page = await pageResolver(curPage, pages, emojiList, page, reaction);
-		if ( !curPage.deleted && currentPage != page && page >= 0 && page < pages.length)
-			await curPage.edit(pages[page].setFooter(footerResolver(page, pages.length)));
+		currentPageIndex = await pageResolver(curPage, pages, emojiList, currentPageIndex, reaction);
+		if ( !curPage.deleted && currentPage != currentPageIndex && currentPageIndex >= 0 && currentPageIndex < pages.length)
+			await curPage.edit(pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length)));
 	});
 	reactionCollector.on('end', async () => {
 		if (curPage.deletable && deleteOnEnd)
