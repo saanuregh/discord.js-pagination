@@ -41,6 +41,7 @@ const paginationEmbed = async (msg, pages,
 		sendMessage = defaultSendMessage,
 		collectorFilter = defaultCollectorFilter,
 		pageResolver = defaultPageResolver,
+		collectErrorHandler = () => {},
 		timeout = 120000,
 		...rest
 	} = {}
@@ -55,12 +56,18 @@ const paginationEmbed = async (msg, pages,
 		{ time: timeout, ...rest }
 	);
 	reactionCollector.on('collect', async (reaction, user) => {
-		await reaction.users.remove(user.id);
-		const currentPage = currentPageIndex;
+		// this try / catch is to handle the edge case where a collect event is fired after a message delete call
+		// but before the delete is complete, handling is offloaded to the user via collectErrorHandler
+		try {
+			await reaction.users.remove(user.id);
+			const currentPage = currentPageIndex;
 
-		currentPageIndex = await pageResolver(paginatedEmbedMessage, pages, emojiList, currentPageIndex, reaction);
-		if ( !paginatedEmbedMessage.deleted && currentPage != currentPageIndex && currentPageIndex >= 0 && currentPageIndex < pages.length)
-			await paginatedEmbedMessage.edit(pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length)));
+			currentPageIndex = await pageResolver(paginatedEmbedMessage, pages, emojiList, currentPageIndex, reaction);
+			if ( !paginatedEmbedMessage.deleted && currentPage != currentPageIndex && currentPageIndex >= 0 && currentPageIndex < pages.length)
+				await paginatedEmbedMessage.edit(pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length)));
+		} catch(error) {
+			await collectErrorHandler(error);
+		}
 	});
 	reactionCollector.on('end', async () => {
 		if (paginatedEmbedMessage.deletable && deleteOnEnd)
