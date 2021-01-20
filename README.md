@@ -34,7 +34,7 @@ for (let i = 0; i < 10; i++) {
 }
 
 const footerResolver = (currentPageIndex, pagesLength) =>
-	`Page ${currentPageIndex + 1} / ${pagesLength}: ${(currentPageIndex % 2 === 0 ? 'This page is even!' : 'This page is odd!')}`;
+	`Page ${currentPageIndex + 1} / ${pagesLength}: ${(currentPageIndex % 2 === 0) ? 'This page is even!' : 'This page is odd!'}`;
 
 const collectErrorHandler = (error) => console.log(error);
 
