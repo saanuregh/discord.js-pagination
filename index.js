@@ -70,7 +70,8 @@ const paginationEmbed = async (msg, pages,
     }
   });
   reactionCollector.on('end', async () => {
-    if (paginatedEmbedMessage.deletable && deleteOnEnd)
+    if (paginatedEmbedMessage.deleted) return;
+    if (deleteOnEnd)
       await paginatedEmbedMessage.delete();
     else
       paginatedEmbedMessage.reactions.removeAll();
