@@ -1,33 +1,87 @@
-const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout = 120000) => {
-	if (!msg && !msg.channel) throw new Error('Channel is inaccessible.');
-	if (!pages) throw new Error('Pages are not given.');
-	if (emojiList.length !== 2) throw new Error('Need two emojis.');
-	let page = 0;
-	const curPage = await msg.channel.send(pages[page].setFooter(`Page ${page + 1} / ${pages.length}`));
-	for (const emoji of emojiList) await curPage.react(emoji);
-	const reactionCollector = curPage.createReactionCollector(
-		(reaction, user) => emojiList.includes(reaction.emoji.name) && !user.bot,
-		{ time: timeout }
-	);
-	reactionCollector.on('collect', reaction => {
-		reaction.users.remove(msg.author);
-		switch (reaction.emoji.name) {
-			case emojiList[0]:
-				page = page > 0 ? --page : pages.length - 1;
-				break;
-			case emojiList[1]:
-				page = page + 1 < pages.length ? ++page : 0;
-				break;
-			default:
-				break;
-		}
-		curPage.edit(pages[page].setFooter(`Page ${page + 1} / ${pages.length}`));
-	});
-	reactionCollector.on('end', () => {
-		if (!curPage.deleted) {
-			curPage.reactions.removeAll()
-		}
-	});
-	return curPage;
+/**
+ *
+ * @param {MessageEmbed[]} pages
+ * @param {EmojiIdentifierResolvable[]} emojiList
+ * @param {number} currentPageIndex
+ * @param {MessageReaction} reaction
+ * @returns {number} - the new page index.
+ */
+const defaultPageResolver = async ({ pages, emojiList, currentPageIndex, reaction }) => {
+  let newPage = currentPageIndex;
+  switch (reaction.emoji.name) {
+    case emojiList[0]:
+      newPage = currentPageIndex > 0 ? currentPageIndex - 1 : pages.length - 1;
+      break;
+    case emojiList[1]:
+      newPage = currentPageIndex + 1 < pages.length ? currentPageIndex + 1 : 0;
+      break;
+    default:
+      return currentPageIndex;
+  }
+  return newPage;
 };
+
+const defaultFooterResolver = (currentPageIndex, pagesLength) => `Page ${currentPageIndex + 1} / ${pagesLength}`;
+
+const defaultSendMessage = (message, pageEmbed) => message.channel.send(pageEmbed);
+
+const defaultCollectorFilter = ({ reaction, user, emojiList }) => emojiList.includes(reaction.emoji.name) && !user.bot;
+
+const defaultCollectorEndHandler = ({ paginatedEmbedMessage }) => {
+  if (!paginatedEmbedMessage.deleted)
+    await paginatedEmbedMessage.reactions.removeAll();
+}
+
+/**
+ *
+ * @param {Message} receivedMessage - the received message
+ * @param {MessageEmbed[]} pages - array of message embeds to use as each page.
+ * @param {PaginationOptions} paginationOptions - exposes collector options, provides customization.
+ */
+const paginationEmbed = async (receivedMessage, pages,
+  {
+    emojiList = ['⏪', '⏩'],
+    footerResolver = defaultFooterResolver,
+    sendMessage = defaultSendMessage,
+    collectorFilter = defaultCollectorFilter,
+    pageResolver = defaultPageResolver,
+    collectErrorHandler = () => {},
+    collectorEndHandler = defaultCollectorEndHandler,
+    timeout = 120000,
+    ...rest
+  } = {}
+) => {
+  if (!receivedMessage && !receivedMessage.channel) throw new Error('Channel is inaccessible.');
+  if (!pages) throw new Error('Pages are not given.');
+  let currentPageIndex = 0;
+  pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length));
+  const paginatedEmbedMessage = await sendMessage(receivedMessage, pages[currentPageIndex]);
+  const reactionCollector = paginatedEmbedMessage.createReactionCollector(
+    async (reaction, user) => {
+        await collectorFilter(reaction, user, emojiList)
+      },
+      { time: timeout, ...rest }
+  );
+  reactionCollector.on('collect', async (reaction, user) => {
+    // this try / catch is to handle the edge case where a collect event is fired after a message delete call
+    // but before the delete is complete, handling is offloaded to the user via collectErrorHandler
+    try {
+      await reaction.users.remove(user.id);
+      const currentPage = currentPageIndex;
+
+      currentPageIndex = await pageResolver({ paginatedEmbedMessage, pages, emojiList, currentPageIndex, reaction });
+      if ( !paginatedEmbedMessage.deleted && currentPage != currentPageIndex && currentPageIndex >= 0 && currentPageIndex < pages.length)
+        await paginatedEmbedMessage.edit(pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length)));
+    } catch(error) {
+      await collectErrorHandler({ error, receivedMessage, paginatedEmbedMessage });
+    }
+  });
+  reactionCollector.on('end', async (collected, reason) => {
+    await collectorEndHandler({ collected, reason, paginatedEmbedMessage, receivedMessage });
+  });
+  for (const emoji of emojiList)
+    await paginatedEmbedMessage.react(emoji);
+  return paginatedEmbedMessage;
+};
+
 module.exports = paginationEmbed;
