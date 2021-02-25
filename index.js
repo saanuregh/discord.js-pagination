@@ -6,7 +6,7 @@
  * @param {MessageReaction} reaction
  * @returns {number} - the new page index.
  */
-const defaultPageResolver = async ({pages, emojiList, currentPageIndex, reaction}) => {
+const defaultPageResolver = async ({ pages, emojiList, currentPageIndex, reaction }) => {
   let newPage = currentPageIndex;
   switch (reaction.emoji.name) {
     case emojiList[0]:
@@ -25,9 +25,9 @@ const defaultFooterResolver = (currentPageIndex, pagesLength) => `Page ${current
 
 const defaultSendMessage = (message, pageEmbed) => message.channel.send(pageEmbed);
 
-const defaultCollectorFilter = (reaction, user, emojiList) => emojiList.includes(reaction.emoji.name) && !user.bot;
+const defaultCollectorFilter = ({ reaction, user, emojiList }) => emojiList.includes(reaction.emoji.name) && !user.bot;
 
-const defaultCollectorEndHandler = ({paginatedEmbedMessage}) => {
+const defaultCollectorEndHandler = ({ paginatedEmbedMessage }) => {
   if (!paginatedEmbedMessage.deleted)
     await paginatedEmbedMessage.reactions.removeAll();
 }
@@ -79,7 +79,8 @@ const paginationEmbed = async (receivedMessage, pages,
   reactionCollector.on('end', async (collected, reason) => {
     await collectorEndHandler({ collected, reason, paginatedEmbedMessage, receivedMessage });
   });
-  for (const emoji of emojiList) await paginatedEmbedMessage.react(emoji);
+  for (const emoji of emojiList)
+    await paginatedEmbedMessage.react(emoji);
   return paginatedEmbedMessage;
 };
 
