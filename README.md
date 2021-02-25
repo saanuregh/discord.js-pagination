@@ -36,7 +36,7 @@ for (let i = 0; i < 10; i++) {
 const footerResolver = (currentPageIndex, pagesLength) =>
 	`Page ${currentPageIndex + 1} / ${pagesLength}: ${(currentPageIndex % 2 === 0) ? 'This page is even!' : 'This page is odd!'}`;
 
-const collectErrorHandler = (error) => console.log(error);
+const collectErrorHandler = ({ error }) => console.log(error);
 
 // Call the paginationEmbed method, first two arguments are required
 // The third argument is the PaginationOptions - all optional
