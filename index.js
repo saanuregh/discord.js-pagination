@@ -9,8 +9,8 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 		(reaction, user) => emojiList.includes(reaction.emoji.name) && !user.bot,
 		{ time: timeout }
 	);
-	reactionCollector.on('collect', reaction => {
-		reaction.users.remove(msg.author);
+	reactionCollector.on('collect', (reaction, user) => {
+		reaction.users.remove(user.id);
 		switch (reaction.emoji.name) {
 			case emojiList[0]:
 				page = page > 0 ? --page : pages.length - 1;
