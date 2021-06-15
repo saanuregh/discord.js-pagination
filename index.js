@@ -21,7 +21,6 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 			default:
 				break;
 		}
-		curPage.edit(pages[page].setFooter(`Page ${page + 1} / ${pages.length}`));
 	});
 	reactionCollector.on('end', () => {
 		if (!curPage.deleted) {
