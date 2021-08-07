@@ -7,10 +7,18 @@
 
 
 # discord.js-pagination
-A simple utility to paginate discord embeds. Built on discord.js@^12.0.0 (master) but should work on older versions. Compatible with MessageEmbeds, RichEmbeds (not tested). Pages are embeds.
+A simple utility to paginate discord embeds. Built on discord.js@^13.0.0, v12 support is available (see below) but is not supported. Compatible with MessageEmbeds, RichEmbeds (not tested). Pages are embeds.
 
 # Installation
+For discord.js@^13.0.0
+
 * `npm install discord.js-pagination`
+
+For the older version of the package with discord.js@^12.0.0 support:
+
+* `npm install discord.js-pagination@1.0.3`
+
+**Note: the usage for 1.0.3 is completely different (not supported)**
 
 # Usage
 
