@@ -1,4 +1,6 @@
-import { EmojiIdentifierResolvable, Message, MessageEmbed, MessageReaction, ReactionCollector, ReactionCollectorOptions, User } from "discord.js";
+import { Collection, EmojiIdentifierResolvable, Message, MessageEmbed,
+  MessageReaction, ReactionCollector, ReactionCollectorOptions,
+  Snowflake, User } from "discord.js";
 
 interface PageResolverParameters {
   paginatedEmbedMessage?: MessageEmbed;
