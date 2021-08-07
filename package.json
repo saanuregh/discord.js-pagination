@@ -1,7 +1,7 @@
 {
-  "name": "discord.js-pagination",
-  "version": "1.0.3",
-  "description": "A simple utility to paginate discord embeds. ",
+  "name": "@psibean/discord.js-pagination",
+  "version": "1.1.0",
+  "description": "A simple utility to paginate discord embeds based on discord.js-pagination.",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
@@ -9,16 +9,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/saanuregh/discord.js-pagination.git"
+    "url": "git+https://github.com/psibean/discord.js-pagination.git"
   },
   "keywords": [
     "discord.js",
     "pagination"
   ],
-  "author": "saanuregh",
+  "author": "psibean",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/saanuregh/discord.js-pagination/issues"
+    "url": "https://github.com/psibean/discord.js-pagination/issues"
   },
-  "homepage": "https://github.com/saanuregh/discord.js-pagination#readme"
+  "homepage": "https://github.com/psibean/discord.js-pagination#readme"
 }
