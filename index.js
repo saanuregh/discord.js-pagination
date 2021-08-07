@@ -23,7 +23,7 @@ const defaultPageResolver = async ({ pages, emojiList, currentPageIndex, reactio
 
 const defaultFooterResolver = (currentPageIndex, pagesLength) => `Page ${currentPageIndex + 1} / ${pagesLength}`;
 
-const defaultSendMessage = (message, pageEmbed) => message.channel.send(pageEmbed);
+const defaultSendMessage = (message, pageEmbed) => message.channel.send({ embeds: [pageEmbed] });
 
 const defaultCollectorFilter = ({ reaction, user, emojiList }) => emojiList.includes(reaction.emoji.name) && !user.bot;
 
@@ -56,12 +56,13 @@ const paginationEmbed = async (receivedMessage, pages,
   let currentPageIndex = 0;
   pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length));
   const paginatedEmbedMessage = await sendMessage(receivedMessage, pages[currentPageIndex]);
-  const reactionCollector = paginatedEmbedMessage.createReactionCollector(
-    async (reaction, user) => {
+  const reactionCollector = paginatedEmbedMessage.createReactionCollector({
+    filter: async (reaction, user) => {
         await collectorFilter(reaction, user, emojiList)
-      },
-      { time: timeout, ...rest }
-  );
+    },
+    time: timeout,
+    ...rest
+  });
   reactionCollector.on('collect', async (reaction, user) => {
     // this try / catch is to handle the edge case where a collect event is fired after a message delete call
     // but before the delete is complete, handling is offloaded to the user via collectErrorHandler
@@ -71,7 +72,7 @@ const paginationEmbed = async (receivedMessage, pages,
 
       currentPageIndex = await pageResolver({ paginatedEmbedMessage, pages, emojiList, currentPageIndex, reaction });
       if ( !paginatedEmbedMessage.deleted && currentPage != currentPageIndex && currentPageIndex >= 0 && currentPageIndex < pages.length)
-        await paginatedEmbedMessage.edit(pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length)));
+        await paginatedEmbedMessage.edit({ embeds: [pages[currentPageIndex].setFooter(footerResolver(currentPageIndex, pages.length))] });
     } catch(error) {
       await collectErrorHandler({ error, receivedMessage, paginatedEmbedMessage });
     }
