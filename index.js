@@ -23,11 +23,11 @@ const defaultPageResolver = async ({ pages, emojiList, currentPageIndex, reactio
 
 const defaultFooterResolver = (currentPageIndex, pagesLength) => `Page ${currentPageIndex + 1} / ${pagesLength}`;
 
-const defaultSendMessage = (message, pageEmbed) => message.channel.send({ embeds: [pageEmbed] });
+const defaultSendMessage = async (message, pageEmbed) => await message.channel.send({ embeds: [pageEmbed] });
 
 const defaultCollectorFilter = ({ reaction, user, emojiList }) => emojiList.includes(reaction.emoji.name) && !user.bot;
 
-const defaultCollectorEndHandler = ({ paginatedEmbedMessage }) => {
+const defaultCollectorEndHandler = async ({ paginatedEmbedMessage }) => {
   if (!paginatedEmbedMessage.deleted)
     await paginatedEmbedMessage.reactions.removeAll();
 }
@@ -58,7 +58,7 @@ const paginationEmbed = async (receivedMessage, pages,
   const paginatedEmbedMessage = await sendMessage(receivedMessage, pages[currentPageIndex]);
   const reactionCollector = paginatedEmbedMessage.createReactionCollector({
     filter: async (reaction, user) => {
-        await collectorFilter(reaction, user, emojiList)
+        await collectorFilter({reaction, user, emojiList})
     },
     time: timeout,
     ...rest
