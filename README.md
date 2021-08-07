@@ -10,18 +10,18 @@
 A simple utility to paginate discord embeds. Built on discord.js@^12.0.0 (master) but should work on older versions. Compatible with MessageEmbeds, RichEmbeds (not tested). Pages are embeds.
 
 # Installation
-* `npm install discord.js-pagination`
+* `npm install @psibean/discord.js-pagination`
 
 # Usage
 
 __Basic Bot Example__
 ```js
 // Import the discord.js-pagination package
-const paginationEmbed = require('discord.js-pagination');
+const paginationEmbed = require('@psibean/discord.js-pagination');
 
 // Use either MessageEmbed or RichEmbed to make pages
 // Keep in mind that Embeds should't have their footers set since the pagination method sets page info there
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed } = require('@psibean/discord.js');
 
 const myPages = [];
 
