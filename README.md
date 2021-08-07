@@ -1,7 +1,7 @@
 <div align="center">
   <p>
-    <a href="https://nodei.co/npm/discord.js-pagination
-/"><img src="https://nodei.co/npm/discord.js-pagination.png?downloads=true&stars=true" alt="NPM info" /></a>
+    <a href="https://nodei.co/npm/@psibean/discord.js-pagination
+/"><img src="https://nodei.co/npm/@psibean/discord.js-pagination.png?downloads=true&stars=true" alt="NPM info" /></a>
   </p>
 </div>
 
@@ -21,7 +21,7 @@ const paginationEmbed = require('@psibean/discord.js-pagination');
 
 // Use either MessageEmbed or RichEmbed to make pages
 // Keep in mind that Embeds should't have their footers set since the pagination method sets page info there
-const { MessageEmbed } = require('@psibean/discord.js');
+const { MessageEmbed } = require('discord.js');
 
 const myPages = [];
 
