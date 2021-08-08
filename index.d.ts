@@ -1,4 +1,4 @@
-import { Collection, EmojiIdentifierResolvable, Message, MessageEmbed,
+import { Collection, EmojiIdentifierResolvable, Interaction, Message, MessageEmbed,
   MessageReaction, ReactionCollector, ReactionCollectorOptions,
   Snowflake, User } from "discord.js";
 
@@ -17,7 +17,7 @@ emojiList: string[];
 }
 
 interface BaseHandlerParameters {
-receivedMessage?: Message;
+receivedMessage?: Interaction | Message;
 paginatedEmbedMessage?: MessageEmbed;
 }
 
