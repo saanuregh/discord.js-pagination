@@ -34,13 +34,13 @@ reason?: string;
 interface PaginationOptions extends ReactionCollectorOptions {
 emojiList?: EmojiIdentifierResolvable[];
 footerResolver?(pageIndex: number, pagesLength: number): string;
-sendMessage?(receivedMessage: Message, pageEmbed: MessageEmbed): Promise<Message>;
+sendMessage?(receivedMessage: Interaction | Message, pageEmbed: MessageEmbed): Promise<Message>;
 collectorFilter?(collectorFilterParameters?: CollectorFilterParameters): boolean | Promise<boolean>;
 pageResolver?(pageResolverParameters?: PageResolverParameters): number | Promise<number>;
 collectErrorHandler?(collectErrorHandlerParameters?: CollectErrorHandlerParameters): void | Promise<void>;
 collectorEndHandler?(collectorEndHandlerParameters?: CollectEndHandlerParameters): void | Promise<void>;
 }
 
-declare function paginationEmbed(receivedMessage: Message, pages: MessageEmbed[], paginationOptions?: PaginationOptions): Promise<Message>;
+declare function paginationEmbed(receivedMessage: Interaction | Message, pages: MessageEmbed[], paginationOptions?: PaginationOptions): Promise<Message>;
 
 export = paginationEmbed;
