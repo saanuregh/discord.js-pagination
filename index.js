@@ -58,7 +58,7 @@ const paginationEmbed = async (receivedMessage, pages,
   const paginatedEmbedMessage = await sendMessage(receivedMessage, pages[currentPageIndex]);
   const reactionCollector = paginatedEmbedMessage.createReactionCollector({
     filter: async (reaction, user) => {
-        await collectorFilter({reaction, user, emojiList})
+        return await collectorFilter({reaction, user, emojiList})
     },
     time: timeout,
     ...rest
