@@ -34,7 +34,7 @@ const defaultCollectorEndHandler = async ({ paginatedEmbedMessage }) => {
 
 /**
  *
- * @param {Message} receivedMessage - the received message
+ * @param {(Interaction|Message)} receivedMessage - the received message or interaction
  * @param {MessageEmbed[]} pages - array of message embeds to use as each page.
  * @param {PaginationOptions} paginationOptions - exposes collector options, provides customization.
  */
@@ -58,7 +58,7 @@ const paginationEmbed = async (receivedMessage, pages,
   const paginatedEmbedMessage = await sendMessage(receivedMessage, pages[currentPageIndex]);
   const reactionCollector = paginatedEmbedMessage.createReactionCollector({
     filter: async (reaction, user) => {
-        await collectorFilter({reaction, user, emojiList})
+        return await collectorFilter({reaction, user, emojiList})
     },
     time: timeout,
     ...rest
