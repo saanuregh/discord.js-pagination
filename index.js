@@ -25,7 +25,7 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 	});
 	reactionCollector.on('end', () => {
 		if (!curPage.deleted) {
-			curPage.reactions.removeAll()
+			curPage.reactions.forEach((react) => { react.remove(react.message.author.id) });
 		}
 	});
 	return curPage;
