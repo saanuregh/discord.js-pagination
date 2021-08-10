@@ -10,7 +10,7 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 		{ time: timeout }
 	);
 	reactionCollector.on('collect', reaction => {
-		reaction.users.remove(msg.author);
+		reaction.remove(msg.author.id);
 		switch (reaction.emoji.name) {
 			case emojiList[0]:
 				page = page > 0 ? --page : pages.length - 1;
@@ -25,7 +25,7 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 	});
 	reactionCollector.on('end', () => {
 		if (!curPage.deleted) {
-			curPage.reactions.removeAll()
+			curPage.reactions.forEach((react) => { react.remove(react.message.author.id) });
 		}
 	});
 	return curPage;
