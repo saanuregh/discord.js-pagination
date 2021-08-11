@@ -27,7 +27,7 @@ const paginationEmbed = require('@psibean/discord.js-pagination');
 
 // Use either MessageEmbed or RichEmbed to make pages
 // Keep in mind that Embeds should't have their footers set since the pagination method sets page info there
-const { MessageEmbed } = require('@psibean/discord.js');
+const { MessageEmbed } = require('discord.js');
 
 const myPages = [];
 
