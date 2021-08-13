@@ -1,17 +1,11 @@
 const BasePaginationEmbed = require('./BasePaginationEmbed');
-const { defaultInteractables, defaultCollectorFilter, defaultPageResolver,
-        defaultCollectorEndHandler } = require('../util/ReactionPaginatorDefaults')
-
-const defaultOptions = { interactables: defaultInteractables, collectorFilter: defaultCollectorFilter, 
-  pageResolver: defaultPageResolver, collectorEndHandler: defaultCollectorEndHandler }
-
-console.log(defaultOptions);
+const reactionPaginationEmbedDefaults = require('../util/ReactionPaginatorDefaults')
 
 class ReactionPaginationEmbed extends BasePaginationEmbed {
 
   constructor(receivedInteraction, pages, options) {
     super(receivedInteraction, pages, {
-            ...defaultOptions,
+            ...reactionPaginationEmbedDefaults,
             ...options});
   }
 

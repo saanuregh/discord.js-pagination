@@ -23,4 +23,8 @@ const defaultCollectorEndHandler = async ({ paginator }) => {
 		await paginator.paginatedEmbedMessage.reactions.removeAll();
 };
 
-module.exports = { defaultInteractables, defaultCollectorFilter, defaultPageResolver, defaultCollectorEndHandler }
+const reactionPaginationEmbedDefaults = { interactables: defaultInteractables, collectorFilter: defaultCollectorFilter, 
+  pageResolver: defaultPageResolver, collectorEndHandler: defaultCollectorEndHandler };
+
+module.exports = reactionPaginationEmbedDefaults,
+{ defaultInteractables, defaultCollectorFilter, defaultPageResolver, defaultCollectorEndHandler }
