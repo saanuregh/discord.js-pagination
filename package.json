@@ -5,7 +5,8 @@
   "module": "./src/index.js",
   "main": "./src/index.js",
   "scripts": {
-    "lint": "eslint ./src/*/**/*.js",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
