@@ -1,45 +1,43 @@
+const { Util } = require('discord.js');
 const BasePaginationEmbed = require('./BasePaginationEmbed');
-const reactionPaginationEmbedDefaults = require('../util/ReactionPaginatorDefaults')
+const { ReactionPaginationDefaults } = require('../util/Defaults');
 
 class ReactionPaginationEmbed extends BasePaginationEmbed {
+	constructor(receivedPrompt, pages, options) {
+		super(receivedPrompt, pages,
+			Util.mergeDefault(ReactionPaginationDefaults, options));
 
-  constructor(receivedInteraction, pages, options) {
-    super(receivedInteraction, pages, {
-            ...reactionPaginationEmbedDefaults,
-            ...options});
-  }
-
-	async _setupPaginationCollector() {
-		const reactionCollector = this.paginationEmbedMessage.createReactionCollector({
-			// TODO: Come back to this.
-			...this.options,
-			filter: async (reaction, user) => {
-				return await this.collectorFilter({ reaction, user, interactables: this.interactables });
-			},
-			time: this.timeout
-		});
-		reactionCollector.on('collect', async (reaction, user) => {
-			// this try / catch is to handle the edge case where a collect event is fired after a message delete call
-			// but before the delete is complete, handling is offloaded to the user via collectErrorHandler
-			try {
-				await reaction.users.remove(user.id);
-				const previousPageIndex = this.currentPageIndex;
-				this.currentPageIndex = await this.pageResolver({ reaction, user, paginator: this });
-				if (this._shouldChangePage(previousPageIndex))
-          await this.paginationEmbedMessage.edit({ embeds: [this.currentPage.setFooter(this.footerResolver(this))] });
-			} catch(error) {
-				await this._handleCollectError({ error, paginator: this });
-			}
-		});
-		reactionCollector.on('end', async (collected, reason) => {
-			await this._handleCollectEnd({ collected, reason, paginator: this });
-		});
-		return reactionCollector;
+		this.emojiList = this.options.emojiList;
 	}
 
-	async _handlePostCollectorSetup() {
-		for (const interactable of this.interactables)
-      await this.paginationEmbedMessage.react(interactable);
+	addEmoji(emoji) {
+		this.emojiList.push(emoji);
+		return this;
+	}
+
+	async _preCollect(args) {
+		super._preCollect();
+		await args.reaction.users.remove(this.receivedPrompt.author);
+	}
+
+	_createCollector() {
+		return this.message.createReactionCollector(this.collectorFilterOptions);
+	}
+
+	getCollectorArgs(args) {
+		const [ reaction, user ] = args;
+		return { reaction, user, paginator: this };
+	}
+
+	async _preSetup() {
+		super._preSetup();
+		if (!this.emojiList)
+			throw new Error('emojiList is empty or undefined');
+	}
+
+	async _postSetup() {
+		for (const emoji of this.emojiList)
+			await this.message.react(emoji);
 	}
 }
 
