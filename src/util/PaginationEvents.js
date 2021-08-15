@@ -1,7 +1,9 @@
 module.exports = {
-	CHANGE_PAGE: 'changePage',
+	BEFORE_PAGE_CHANGED: 'beforePageChanged',
 	COLLECT_ERROR: 'collectError',
+	PAGE_CHANGED: 'pageChanged',
+	PAGE_UNCHANGED: 'pageUnchanged',
 	PAGINATION_END: 'paginationEnd',
-	POST_COLLECT: 'postCollect',
-	PRE_COLLECT: 'preCollect'
+	COLLECT_START: 'collectStart',
+	COLLECT_END: 'collectEnd'
 };

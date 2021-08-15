@@ -54,7 +54,7 @@ class BasePaginationEmbed extends EventEmitter {
 		if (!receivedPrompt.channel)
 			throw new Error('The received prompt does not have a valid channel.');
 
-		Object.defineProperty('client', { value: receivedPrompt.client });
+		Object.defineProperty(this, 'client', { value: receivedPrompt.client });
 		/**
 		 * The message or interaction received that initiated the pagination.
 		 * @name BasePaginationEmbed#
@@ -123,7 +123,13 @@ class BasePaginationEmbed extends EventEmitter {
 		if (!this.pages)
 			throw new Error('There don\'t seem to be any pages to send.');
 		if (!this.messageSender)
-			throw new Error('There doesn\'t seem to be a valid message send');
+			throw new Error('There doesn\'t seem to be a valid messageSsender');
+	}
+
+	_shouldChangePage(changePageArgs) {
+		if (this.shouldChangePage)
+			return this.shouldChangePage(changePageArgs);
+		return true;
 	}
 
 	async send() {
@@ -132,7 +138,7 @@ class BasePaginationEmbed extends EventEmitter {
 		this.currentPageIndex = this.startingIndex;
 
 		await this._resolveFooter();
-		this.message = await this.messageSender(this.receivedPrompt, this.currentPage);
+		this.message = await this.messageSender(this.receivedPrompt, this.currentPageMessageOptions);
 		this.collector = this._createCollector();
 
 		this.collector.on('collect', this._handleCollect.bind(this));
@@ -142,48 +148,49 @@ class BasePaginationEmbed extends EventEmitter {
 		return this;
 	}
 
-	_preCollect(args) {
-		this.emit(PaginationEvents.PRE_COLLECT, args);
+	_collectStart(args) {
+		this.emit(PaginationEvents.COLLECT_START, args);
 	}
 
-	_postCollect(args) {
-		this.emit(PaginationEvents.POST_COLLECT, args);
+	_collectEnd(args) {
+		this.emit(PaginationEvents.COLLECT_END, args);
 	}
 
 	async _handleCollect(...args) {
 		// this try / catch is to handle the edge case where a collect event is fired after a message delete call
 		// but before the delete is complete, handling is offloaded to the user via collectErrorHandler
 		try {
-			await this._preCollect(this.getCollectorArgs(args));
-			this._previousPageIndex = this.currentPageIndex;
-			this.currentPageIndex = await this.pageResolver(this.getCollectorArgs(args));
+			await this._collectStart(this.getCollectorArgs(args));
+			const collectorArgs = this.getCollectorArgs(args);
+			const newPageIndex = await this.pageResolver(collectorArgs);
 			const changePageArgs = {
-				previousPageIndex: this.previousPageIndex,
+				...collectorArgs,
+				newPageIndex,
 				currentPageIndex: this.currentPageIndex,
 				paginator: this
 			};
-			if (await this.shouldChangePage(changePageArgs)) {
-				await this._resolveFooter();
-				await this.message.edit({ embeds: [this.currentPage] });
-				this.emit(PaginationEvents.CHANGE_PAGE, changePageArgs);
-			}
-			await this._postCollect(this.getCollectorArgs(args));
+			await this.changePage(changePageArgs);
+			await this._collectEnd(collectorArgs);
 		} catch(error) {
 			this.emit(PaginationEvents.COLLECT_ERROR, { error, paginator: this });
 		}
 	}
 
-	validateChangePage() {
-		return this.currentPageIndex >= 0
-			&& this.currentPageIndex < this.numberOfPages;
+	async changePage(changePageArgs) {
+		if (await this._shouldChangePage(changePageArgs)) {
+			this._previousPageIndex = this.currentPageIndex;
+			this.currentPageIndex = changePageArgs.newPageIndex;
+			await this._resolveFooter();
+			this.emit(PaginationEvents.BEFORE_PAGE_CHANGED, changePageArgs);
+			await this.message.edit(this.currentPageMessageOptions);
+			this.emit(PaginationEvents.PAGE_CHANGED, changePageArgs);
+		} else {
+			this.emit(PaginationEvents.PAGE_UNCHANGED);
+		}
 	}
 
 	get notSent() {
 		return !!this._isSent;
-	}
-
-	set timeout(timeout) {
-		this._timeout = timeout;
 	}
 
 	get numberOfPages() {
@@ -191,35 +198,41 @@ class BasePaginationEmbed extends EventEmitter {
 	}
 
 	get previousPageIndex() {
-		return this._previousPageIndex;
+		return this._previousPageIndex || -1;
 	}
 
 	get currentPageIndex() {
 		return this._currentPageIndex;
 	}
 
-	set currentPageIndex(currentPageIndex) {
-		this._currentPageIndex = currentPageIndex;
+	set currentPageIndex(pageIndex) {
+		// eslint-disable-next-line no-extra-boolean-cast
+		if (pageIndex === undefined) return;
+
+		if (pageIndex < 0)
+			this._currentPageIndex = this.numberOfPages + (pageIndex % this.numberOfPages);
+		else if (pageIndex >= this.numberOfPages)
+			this._currentPageIndex = pageIndex % this.numberOfPages;
+		else
+			this._currentPageIndex = pageIndex;
 	}
 
 	get currentPage() {
 		return this.pages[this.currentPageIndex];
 	}
 
+	get currentPageMessageOptions() {
+		return { embeds: [this.currentPage] };
+	}
+
 	get startingIndex() {
-		if (this._startingIndex && this._startingIndex >= 0
-					&& this._startingIndex < this.numberOfPages)
-			return this._startingIndex;
-		return 0;
+		if (this._startingIndex === undefined)
+			return 0;
+		return this._startingIndex;
 	}
 
 	set startingIndex(startingIndex) {
 		this._startingIndex = startingIndex;
-	}
-
-	addPage(page) {
-		this.pages.push(page);
-		return this;
 	}
 
 	setMessageSender(messageSender) {
@@ -264,6 +277,12 @@ class BasePaginationEmbed extends EventEmitter {
 	setCollectorEndHandler(collectorEndHandler) {
 		this.collectorEndHandler = collectorEndHandler;
 		return this;
+	}
+
+	async stop(reason = 'paginator') {
+		if (!this.collector.ended)
+			this.collector.stop(reason);
+		this.removeAllListeners();
 	}
 }
 

@@ -1,34 +1,55 @@
 exports.BasePaginationDefaults = {
 	startingIndex: 0,
 	idle: 10e3,
-	shouldChangePage: ({ previousPageIndex, paginator }) =>
-		paginator.validateChangePage() && previousPageIndex !== paginator.currentPageIndex,
+	shouldChangePage: ({ newPageIndex, previousPageIndex, paginator }) =>
+		!paginator.message.deleted && newPageIndex !== previousPageIndex,
 	footerResolver: (paginator) => `Page ${paginator.currentPageIndex + 1} / ${paginator.numberOfPages}`,
-	messageSender: async (receivedPrompt, currentPage) => await receivedPrompt.channel.send({ embeds: [currentPage] })
+	messageSender: (receivedPrompt, currentPageMessageOptions) => receivedPrompt.channel.send(currentPageMessageOptions)
 };
 
 exports.ReactionPaginationDefaults = {
 	...exports.BasePaginationDefaults,
 	emojiList: ['⏪', '⏩'],
-	collectorFilter: ({ reaction, user, paginator }) => paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
-	pageResolver: async ({ reaction, paginator }) => {
-		let newPageIndex = 0;
+	collectorFilter: ({ reaction, user, paginator }) =>
+		user === paginator.receivedPrompt.author && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
+	pageResolver: ({ reaction, paginator }) => {
 		switch (reaction.emoji.name) {
 			case paginator.emojiList[0]:
-				newPageIndex = paginator.currentPageIndex > 0
-					? paginator.currentPageIndex - 1 : paginator.numberOfPages - 1;
-				break;
+				return paginator.currentPageIndex - 1;
 			case paginator.emojiList[1]:
-				newPageIndex = paginator.currentPageIndex + 1 < paginator.numberOfPages
-					? paginator.currentPageIndex + 1 : 0;
-				break;
+				return paginator.currentPageIndex + 1;
 			default:
-				return paginator.previousPageIndex;
+				return paginator.currentPageIndex;
 		}
-		return newPageIndex;
+	}
+};
+
+exports.ActionRowPaginationEmbedDefaults = {
+	...exports.BasePaginationDefaults,
+	messageActionRowOptions: {
+		type: 'ACTION_ROW',
+		components: [
+			{
+				type: 'BUTTON',
+				label: 'Previous',
+				customId: 'prev',
+				style: 'PRIMARY'
+			},
+			{
+				type: 'BUTTON',
+				label: 'Next',
+				customId: 'next',
+				style: 'PRIMARY'
+			}
+		]
 	},
-	collectorEndHandler: async ({ paginator }) => {
-		if (!paginator.paginatedEmbedMessage.deleted)
-			await paginator.paginatedEmbedMessage.reactions.removeAll();
+	collectorFilter: ({ interaction, paginator }) => interaction.user === paginator.receivedPrompt.author && !paginator.receivedPrompt.bot,
+	pageResolver: ({ interaction, paginator }) => {
+		switch (interaction.customId) {
+			case 'prev':
+				return paginator.currentPageIndex - 1;
+			case 'next':
+				return paginator.currentPageIndex + 1;
+		}
 	}
 };
