@@ -26,30 +26,46 @@ exports.ReactionPaginationDefaults = {
 
 exports.ActionRowPaginationEmbedDefaults = {
 	...exports.BasePaginationDefaults,
-	messageActionRowOptions: {
-		type: 'ACTION_ROW',
-		components: [
-			{
-				type: 'BUTTON',
-				label: 'Previous',
-				customId: 'prev',
-				style: 'PRIMARY'
-			},
-			{
-				type: 'BUTTON',
-				label: 'Next',
-				customId: 'next',
-				style: 'PRIMARY'
-			}
-		]
-	},
-	collectorFilter: ({ interaction, paginator }) => interaction.user === paginator.receivedPrompt.author && !paginator.receivedPrompt.bot,
-	pageResolver: ({ interaction, paginator }) => {
-		switch (interaction.customId) {
-			case 'prev':
-				return paginator.currentPageIndex - 1;
-			case 'next':
-				return paginator.currentPageIndex + 1;
+	customIdPrefix: 'pagination',
+	collectorFilter: ({ interaction, paginator }) => paginator.checkInteractionOwnership(interaction.customId)
+		&& interaction.user === paginator.receivedPrompt.author && !paginator.receivedPrompt.bot
+};
+
+exports.ButtonPaginationEmbedDefaults = {
+	...exports.ActionRowPaginationEmbedDefaults,
+	buttons: [
+		{
+			label: 'Previous',
+			style: 'PRIMARY'
+		},
+		{
+			label: 'Next',
+			style: 'PRIMARY'
 		}
+	],
+	pageResolver: ({ interaction, paginator }) => {
+		const val = interaction.customId.toLowerCase();
+		if (val.includes('prev'))
+			return paginator.currentPageIndex - 1;
+		else if (val.includes('next'))
+			return paginator.currentPageIndex + 1;
+		return paginator.currentPageIndex;
+	}
+};
+
+exports.SelectPaginationEmbedDefaults = {
+	...exports.ActionRowPaginationEmbedDefaults,
+	messageActionRowOptions: {
+		type: 'ACTION_ROW'
+	},
+	pagesMap: ({ selectMenuOptions, paginator }) => {
+		const pagesMap = {};
+		for (let i = 0; i < paginator.numberOfPages; i++)
+			pagesMap[selectMenuOptions[i].value] = i;
+		return pagesMap;
+	},
+	pageResolver: ({ interaction, paginator }) => {
+		const [selectedValue] = interaction.values;
+		return paginator.pagesMap[selectedValue];
 	}
 };

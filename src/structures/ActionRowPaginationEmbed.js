@@ -1,13 +1,16 @@
 const { MessageActionRow } = require('discord.js');
-const { Util } = require('discord.js');
 const BasePaginationEmbed = require('./BasePaginationEmbed');
-const { ActionRowPaginationEmbedDefaults } = require('../util/Defaults');
+
 
 class ActionRowPaginationEmbed extends BasePaginationEmbed {
 	constructor(receivedPrompt, pages, options) {
-		super(receivedPrompt, pages,
-			Util.mergeDefault(ActionRowPaginationEmbedDefaults, options));
-		this.messageActionRow = new MessageActionRow(this.options.messageActionRowOptions);
+		super(receivedPrompt, pages, options);
+		this.customIdPrefix = this.options.customIdPrefix;
+		this.customIdSuffix = receivedPrompt.id;
+		this.messageActionRow = new MessageActionRow({
+			type: 'ACTION_ROW',
+			customId: this._getCustomId('action-row')
+		});
 	}
 
 	getCollectorArgs(args) {
@@ -28,6 +31,13 @@ class ActionRowPaginationEmbed extends BasePaginationEmbed {
 		return { ...super.currentPageMessageOptions, components: [this.messageActionRow] };
 	}
 
+	_getCustomId(label) {
+		return `${this.customIdPrefix}-${label}-${this.customIdSuffix}`;
+	}
+
+	checkInteractionOwnership(interactionId) {
+		return interactionId && interactionId.startsWith(this.customIdPrefix) && interactionId.endsWith(this.customIdSuffix);
+	}
 }
 
 module.exports = ActionRowPaginationEmbed;
