@@ -12,7 +12,7 @@
 			"error",
 			"1tbs",
 			{
-				"allowSingleLine": true,
+				"allowSingleLine": true
 			}
 		],
 		"comma-dangle": [
