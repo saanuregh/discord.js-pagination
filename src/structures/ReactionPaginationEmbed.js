@@ -10,13 +10,8 @@ class ReactionPaginationEmbed extends BasePaginationEmbed {
 		this.emojiList = this.options.emojiList;
 	}
 
-	addEmoji(emoji) {
-		this.emojiList.push(emoji);
-		return this;
-	}
-
-	async _preCollect(args) {
-		super._preCollect();
+	async _collectStart(args) {
+		super._collectStart();
 		await args.reaction.users.remove(this.receivedPrompt.author);
 	}
 
