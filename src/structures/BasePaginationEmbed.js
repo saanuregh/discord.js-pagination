@@ -1,50 +1,6 @@
 const EventEmitter = require('events');
 const PaginationEvents = require('../util/PaginationEvents');
 
-/**
- * @typedef {Function} MessageSender
- * @param {Message|Interaction} receivedPrompt The initial user prompt that initiated the pagination.
- * @param {MessageEmbed} currentPage The initial page that will be sent, derived from startingIndex.
- * @returns {Message|Promise<Message>} The message that is sent and to be used for pagination.
- */
-
-/**
- * @typedef {CollectorFilter} PaginationCollectorFilter
- */
-
-/**
- * @typedef {Function} PageResolver
- */
-
-/**
- * @typedef {Function} FooterResolver
- */
-
-/**
- * @typedef {Function} collectErrorHandler
- */
-
-/**
- * @typedef {Function} collectorEndHandler
- */
-
-/**
- * @typedef {CollectorOptions} BasePaginationOptions
- * @property {MessageEmbed[]} pages The list of MessageEmbed objects to use as pages.
- * @property {MessageSender} messageSender The function that will handle sending the intial message.
- * @property {ContentResolver}
- * @property {PaginationCollectorFilter}
- * @property {number} timeout
- * @property {PageResolver}
- * @property {FooterResolver}
- * @property {CollectErrorHandler}
- * @property {StartingIndex}
- * @property {CollectorEndHandler}
- */
-
-/**
- *
- */
 class BasePaginationEmbed extends EventEmitter {
 	constructor(receivedPrompt, pages, options) {
 		super();
@@ -55,38 +11,17 @@ class BasePaginationEmbed extends EventEmitter {
 			throw new Error('The received prompt does not have a valid channel.');
 
 		Object.defineProperty(this, 'client', { value: receivedPrompt.client });
-		/**
-		 * The message or interaction received that initiated the pagination.
-		 * @name BasePaginationEmbed#
-		 * @type {Message|Interaction}
-		 * @readonly
-		 */
 		Object.defineProperty(this, 'receivedPrompt', { value: receivedPrompt });
 
 		this.pages = pages;
 		this.messageSender = options.messageSender;
 
-		/**
-		 * The options of this PaginationEmbed.
-		 * @type {BasePaginationOptions}
-		 */
 		this.options = options;
 		this.collectorFilter = options.collectorFilter;
 		this.pageResolver = options.pageResolver;
 		this.shouldChangePage = options.shouldChangePage;
 		this.footerResolver = options.footerResolver;
-		this._startingIndex = options.startingIndex;
-	}
-
-	get collectorFilterOptions() {
-		return {
-			...this.options,
-			filter: this._collectorFilter.bind(this)
-		};
-	}
-
-	async _collectorFilter(...args) {
-		return await this.collectorFilter(this.getCollectorArgs(args));
+		this.startingIndex = options.startingIndex;
 	}
 
 	_createCollector() {
@@ -97,11 +32,16 @@ class BasePaginationEmbed extends EventEmitter {
 		throw new Error('getCollectorArgs has not been implements.');
 	}
 
-	get isCurrentPageIndexValid() {
-		return this.currentPageIndex >= 0 && this.currentPageIndex < this.numberOfPages;
+	async _collectorFilter(...args) {
+		return await this.collectorFilter(this.getCollectorArgs(args));
 	}
 
-	async _postSetup() {}
+	get collectorFilterOptions() {
+		return {
+			...this.options,
+			filter: this._collectorFilter.bind(this)
+		};
+	}
 
 	_handleCollectError(collectErrorOptions) {
 		if (this.collectErrorHandler)
@@ -126,10 +66,20 @@ class BasePaginationEmbed extends EventEmitter {
 			throw new Error('There doesn\'t seem to be a valid messageSsender');
 	}
 
+	async _postSetup() {}
+
 	_shouldChangePage(changePageArgs) {
 		if (this.shouldChangePage)
 			return this.shouldChangePage(changePageArgs);
 		return true;
+	}
+
+	_collectStart(args) {
+		this.emit(PaginationEvents.COLLECT_START, args);
+	}
+
+	_collectEnd(args) {
+		this.emit(PaginationEvents.COLLECT_END, args);
 	}
 
 	async send() {
@@ -146,14 +96,6 @@ class BasePaginationEmbed extends EventEmitter {
 		await this._postSetup();
 		Object.defineProperty(this, '_isSent', { value: true });
 		return this;
-	}
-
-	_collectStart(args) {
-		this.emit(PaginationEvents.COLLECT_START, args);
-	}
-
-	_collectEnd(args) {
-		this.emit(PaginationEvents.COLLECT_END, args);
 	}
 
 	async _handleCollect(...args) {
