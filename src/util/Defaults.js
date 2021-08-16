@@ -1,6 +1,6 @@
 exports.BasePaginationDefaults = {
 	startingIndex: 0,
-	idle: 10e3,
+	idle: 6e4,
 	shouldChangePage: ({ newPageIndex, previousPageIndex, paginator }) =>
 		!paginator.message.deleted && newPageIndex !== previousPageIndex,
 	footerResolver: (paginator) => `Page ${paginator.currentPageIndex + 1} / ${paginator.numberOfPages}`,
