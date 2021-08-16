@@ -31,8 +31,8 @@ class ReactionPaginationEmbed extends BasePaginationEmbed {
 	}
 
 	async _collectStart(args) {
-		super._collectStart();
-		await args.reaction.users.remove(this.receivedPrompt.author);
+		super._collectStart(args);
+		await args.reaction.users.remove(args.user);
 	}
 }
 
