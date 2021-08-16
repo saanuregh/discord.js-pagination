@@ -10,11 +10,6 @@ class ReactionPaginationEmbed extends BasePaginationEmbed {
 		this.emojiList = this.options.emojiList;
 	}
 
-	async _collectStart(args) {
-		super._collectStart();
-		await args.reaction.users.remove(this.receivedPrompt.author);
-	}
-
 	_createCollector() {
 		return this.message.createReactionCollector(this.collectorFilterOptions);
 	}
@@ -33,6 +28,11 @@ class ReactionPaginationEmbed extends BasePaginationEmbed {
 	async _postSetup() {
 		for (const emoji of this.emojiList)
 			await this.message.react(emoji);
+	}
+
+	async _collectStart(args) {
+		super._collectStart();
+		await args.reaction.users.remove(this.receivedPrompt.author);
 	}
 }
 

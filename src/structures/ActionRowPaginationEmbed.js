@@ -17,9 +17,9 @@ class ActionRowPaginationEmbed extends BasePaginationEmbed {
 		return this.message.createMessageComponentCollector(this.collectorFilterOptions);
 	}
 
-	async _collectStart(args) {
-		await args.interaction.deferUpdate();
-		super._collectStart(args);
+	getCollectorArgs(args) {
+		const [interaction] = args;
+		return { interaction, paginator: this };
 	}
 
 	async _collectorFilter(...args) {
@@ -30,9 +30,9 @@ class ActionRowPaginationEmbed extends BasePaginationEmbed {
 		return false;
 	}
 
-	getCollectorArgs(args) {
-		const [interaction] = args;
-		return { interaction, paginator: this };
+	async _collectStart(args) {
+		await args.interaction.deferUpdate();
+		super._collectStart(args);
 	}
 
 	get currentPageMessageOptions() {
