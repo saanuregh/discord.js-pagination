@@ -4,10 +4,8 @@
   "description": "A simple utility to paginate discord embeds based on discord.js-pagination.",
   "main": "./src/index.js",
   "module": "./src/index.mjs",
-  "types": "index.d.ts",
   "files": [
-    "src",
-    "index.d.ts"
+    "src"
   ],
   "exports": {
     "./*": "./*",
