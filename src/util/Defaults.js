@@ -4,14 +4,14 @@ exports.BasePaginationDefaults = {
 	shouldChangePage: ({ newPageIndex, previousPageIndex, paginator }) =>
 		!paginator.message.deleted && newPageIndex !== previousPageIndex,
 	footerResolver: (paginator) => `Page ${paginator.currentPageIndex + 1} / ${paginator.numberOfPages}`,
-	messageSender: (receivedPrompt, currentPageMessageOptions) => receivedPrompt.channel.send(currentPageMessageOptions)
+	messageSender: (paginator) => paginator.channel.send(paginator.currentPageMessageOptions)
 };
 
 exports.ReactionPaginationDefaults = {
 	...exports.BasePaginationDefaults,
 	emojiList: ['⏪', '⏩'],
 	collectorFilter: ({ reaction, user, paginator }) =>
-		user === paginator.receivedPrompt.author && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
+		user === paginator.user && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
 	pageResolver: ({ reaction, paginator }) => {
 		switch (reaction.emoji.name) {
 			case paginator.emojiList[0]:
@@ -28,7 +28,7 @@ exports.ActionRowPaginationEmbedDefaults = {
 	...exports.BasePaginationDefaults,
 	customIdPrefix: 'pagination',
 	collectorFilter: ({ interaction, paginator }) =>
-		interaction.user === paginator.receivedPrompt.author && !interaction.user.bot
+		interaction.user === paginator.user && !interaction.user.bot
 };
 
 exports.ButtonPaginationEmbedDefaults = {

@@ -11,11 +11,12 @@ class BasePaginationEmbed extends EventEmitter {
 			throw new Error('The received prompt does not have a valid channel.');
 
 		Object.defineProperty(this, 'client', { value: receivedPrompt.client });
+		Object.defineProperty(this, 'user', {value: receivedPrompt.author || receivedPrompt.user });
+		Object.defineProperty(this, 'channel', { value: receivedPrompt.channel });
 		Object.defineProperty(this, 'receivedPrompt', { value: receivedPrompt });
 
 		this.pages = pages;
 		this.messageSender = options.messageSender;
-
 		this.options = options;
 		this.collectorFilter = options.collectorFilter;
 		this.pageResolver = options.pageResolver;
@@ -88,7 +89,7 @@ class BasePaginationEmbed extends EventEmitter {
 		this.currentPageIndex = this.startingIndex;
 
 		await this._resolveFooter();
-		this.message = await this.messageSender(this.receivedPrompt, this.currentPageMessageOptions);
+		this.message = await this.messageSender(this);
 		this.collector = this._createCollector();
 
 		this.collector.on('collect', this._handleCollect.bind(this));
