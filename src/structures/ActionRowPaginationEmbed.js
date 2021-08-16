@@ -13,9 +13,8 @@ class ActionRowPaginationEmbed extends BasePaginationEmbed {
 		});
 	}
 
-	getCollectorArgs(args) {
-		const [interaction] = args;
-		return { interaction, paginator: this };
+	_createCollector() {
+		return this.message.createMessageComponentCollector(this.collectorFilterOptions);
 	}
 
 	async _collectStart(args) {
@@ -23,8 +22,17 @@ class ActionRowPaginationEmbed extends BasePaginationEmbed {
 		super._collectStart(args);
 	}
 
-	_createCollector() {
-		return this.message.createMessageComponentCollector(this.collectorFilterOptions);
+	async _collectorFilter(...args) {
+		const [interaction] = args;
+		if (interaction.customId.startsWith(this.customIdPrefix)
+			&& interaction.customId.endsWith(this.customIdSuffix))
+			return await super._collectorFilter(...args);
+		return false;
+	}
+
+	getCollectorArgs(args) {
+		const [interaction] = args;
+		return { interaction, paginator: this };
 	}
 
 	get currentPageMessageOptions() {
@@ -33,10 +41,6 @@ class ActionRowPaginationEmbed extends BasePaginationEmbed {
 
 	_getCustomId(label) {
 		return `${this.customIdPrefix}-${label}-${this.customIdSuffix}`;
-	}
-
-	checkInteractionOwnership(interactionId) {
-		return interactionId && interactionId.startsWith(this.customIdPrefix) && interactionId.endsWith(this.customIdSuffix);
 	}
 }
 

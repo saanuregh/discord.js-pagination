@@ -27,8 +27,8 @@ exports.ReactionPaginationDefaults = {
 exports.ActionRowPaginationEmbedDefaults = {
 	...exports.BasePaginationDefaults,
 	customIdPrefix: 'pagination',
-	collectorFilter: ({ interaction, paginator }) => paginator.checkInteractionOwnership(interaction.customId)
-		&& interaction.user === paginator.receivedPrompt.author && !paginator.receivedPrompt.bot
+	collectorFilter: ({ interaction, paginator }) =>
+		interaction.user === paginator.receivedPrompt.author && !interaction.user.bot
 };
 
 exports.ButtonPaginationEmbedDefaults = {
