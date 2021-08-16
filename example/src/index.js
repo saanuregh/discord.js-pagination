@@ -1,68 +1,68 @@
-const { Client, Intents, MessageEmbed } = require('discord.js');
-const { ButtonPaginationEmbed, PaginationEvents,
-	ReactionPaginationEmbed, SelectPaginationEmbed } = require('../../src/index');
-
+const path = require('path');
+const fs = require('fs');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const { Client, Intents, Collection } = require('discord.js');
 
 process.on('uncaughtException', function(err) {
 	console.log('UNCAUGHT EXCEPTION:\n');
 	console.log(err);
 });
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
+const client = new Client({
+	intents: [
+		Intents.FLAGS.GUILDS,
+		Intents.FLAGS.GUILD_MESSAGES,
+		Intents.FLAGS.GUILD_MESSAGE_REACTIONS
+	]
+});
+
+client.commands = new Collection();
+
+const commandFiles = fs.readdirSync(path.join(__dirname, '/commands')).filter(file => file.endsWith('.js'));
+const commands = [];
+
+for (const file of commandFiles) {
+	const command = require(`./commands/${file}`);
+	// set a new item in the Collection
+	// with the key as the command name and the value as the exported module
+	client.commands.set(command.data.name, command);
+	commands.push(command.data.toJSON());
+}
+
+const rest = new REST({ version: '9' }).setToken(process.env.BOT_TOKEN);
 
 client.once('ready', () => {
 	console.log('Ready!');
+	(async () => {
+		try {
+			console.log('Started refreshing application (/) commands.');
+	
+			await rest.put(
+				Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+				{ body: commands },
+			);
+	
+			console.log('Successfully reloaded application (/) commands.');
+		} catch (error) {
+			console.error(error);
+		}
+	})();
 });
 
-client.on('messageCreate', async (message) => {
-	if (message.content.includes('!p')) {
-		const myPages = [];
-		for (let i = 0; i < 10; i++) {
-			const pageEmbed = new MessageEmbed();
-			pageEmbed
-				.setTitle(`This embed is index ${i}!`)
-				.setDescription(`That means it is page #${i + 1}`);
-			myPages.push(pageEmbed);
-		}
-		let paginationEmbed = null;
-		if (message.content.startsWith('!pr')) {
-			paginationEmbed = new ReactionPaginationEmbed(message, myPages);
-		} else if (message.content.startsWith('!pb')) {
-			paginationEmbed = new ButtonPaginationEmbed(message, myPages);
-		} else if (message.content.startsWith('!ps')) {
-			const selectOptions = [];
-			for (let i = 0; i < 10; i++)
-				selectOptions.push({
-					label: `"Page #${i + 1}`,
-					value: `${i}`,
-					description: 'This will take you to page#' + i
-				});
-			paginationEmbed = new SelectPaginationEmbed(message, myPages, {
-				selectMenuOptions: selectOptions
-			});
-		}
-		paginationEmbed.on(PaginationEvents.PAGINATION_END, async ({ reason, paginator }) => {
-			try {
-				console.log('The pagination has ended: ' + reason);
-				if (!paginator.message.deleted)
-					await paginator.message.delete();
-				if (!paginator.receivedPrompt.deleted)
-					await paginator.receivedPrompt.delete();
-			} catch (error) {
-				console.log('There was an error when deleting the message: ');
-				console.log(error);
-			}
-		}).on(PaginationEvents.COLLECT_ERROR, ({ error }) => console.log(error));
-		return await (paginationEmbed.send()).message;
+client.on('interactionCreate', async (interaction) => {
+	if (!interaction.isCommand()) return;
+
+	const { commandName } = interaction;
+
+	if (!client.commands.has(commandName)) return;
+
+	try {
+		await client.commands.get(commandName).execute(interaction);
+	} catch (error) {
+		console.error(error);
+		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
-});
-
-client.on('interactionCreate', (interaction) => {
-	// Prevent the client from collecting pagination interactions.
-	// The prefix can be customised per pagination embed.
-	if (interaction.customId && interaction.customId.startsWith('pagination'))
-		return;
-	console.log('CLIENT GOT AN INTERACTION: ' + interaction.customId);
 });
 
 client.login(process.env.BOT_TOKEN);
