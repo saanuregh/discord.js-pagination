@@ -3,6 +3,7 @@ const fs = require('fs');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { Client, Intents, Collection } = require('discord.js');
+const config = require('../config');
 
 process.on('uncaughtException', function(err) {
 	console.log('UNCAUGHT EXCEPTION:\n');
@@ -30,7 +31,7 @@ for (const file of commandFiles) {
 	commands.push(command.data.toJSON());
 }
 
-const rest = new REST({ version: '9' }).setToken(process.env.BOT_TOKEN);
+const rest = new REST({ version: '9' }).setToken(config.BOT_TOKEN);
 
 client.once('ready', () => {
 	console.log('Ready!');
@@ -39,7 +40,7 @@ client.once('ready', () => {
 			console.log('Started refreshing application (/) commands.');
 	
 			await rest.put(
-				Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+				Routes.applicationGuildCommands(config.CLIENT_ID, config.GUILD_ID),
 				{ body: commands },
 			);
 	
@@ -65,4 +66,4 @@ client.on('interactionCreate', async (interaction) => {
 	}
 });
 
-client.login(process.env.BOT_TOKEN);
+client.login(config.BOT_TOKEN);

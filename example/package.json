@@ -1,16 +1,12 @@
 {
   "main": "src/index.js",
   "scripts": {
-    "start": "node --require dotenv/config ."
+    "start": "node ."
   },
   "dependencies": {
     "@discordjs/builders": "^0.4.0",
     "@discordjs/rest": "*",
     "discord-api-types": "^0.22.0",
     "discord.js": "^13.1.0"
-  },
-  "devDependencies": {
-    "dotenv": "^10.0.0",
-    "eslint": "^7.32.0"
   }
 }
