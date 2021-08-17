@@ -12,7 +12,7 @@ A simple utility (or advanced - it's your choice) to paginate discord embeds. Bu
 To see how the example paginations look, checkout the [example bot](example/README.md) (the readme has gifs)!
 
 ## **Upcoming breaking change in 4.0.0**
-The design of this new update was heavily driven by the existing discord.js-pagination. There are plans to update the `pageResolver` to take in the collected args and paginator and return a `Promise&lt;MessageEmbed | MessageEmbed` you wish to display. This way you will not have to construct all your embeds pre-emptively, but can instead provide a way to construct them dynamically per page change. This will have the benefit of replying to interactions faster.
+The design of this new update was heavily driven by the existing discord.js-pagination. There are plans to update the `pageResolver` to take in the collected args and paginator and return a `Promise<MessageEmbed> | MessageEmbed` you wish to display. This way you will not have to construct all your embeds pre-emptively, but can instead provide a way to construct them dynamically per page change. This will have the benefit of replying to interactions faster.
 
 ##### Table of Contents
 - [Installation](#installation)
@@ -35,7 +35,7 @@ For the below examples, the pages can be constructed as per the [example bot](ex
 
 ```js
 const pages = [];
-for (let i = 0; i &lt; 10; i++) {
+for (let i = 0; i 10; i++) {
   const pageEmbed = new MessageEmbed();
   pageEmbed
     .setTitle(`This embed is index ${i}!`)
@@ -82,7 +82,7 @@ const { SelectPaginator } = require('@psibean/discord.js-pagination');
 
 // The default pagesMap will map these option values to the index
 const selectOptions = [];
-for (let i = 0; i &lt; 10; i++)
+for (let i = 0; i < 10; i++)
 	selectOptions.push({
 		label: `"Page #${i + 1}`,
 		value: `${i}`,
@@ -278,7 +278,7 @@ These options are specific to the `ButtonPaginator`.
 An array of [MessageButtonOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageButtonOptions) which will be added to the paginators action row.
 
 Note:
-- customId is not required, the paginator will update the customId to be: `&lt;prefix&gt;-[&lt;customId&gt;-]&lt;suffix&gt;` 
+- customId is not required, the paginator will update the customId to be: `<prefix>-[<customId>-]<suffix>` 
 where the suffix is the id of the received interaction that initiated the paginator.
 - type will be updated to `BUTTON`
 - style will default to `PRIMARY` if not set
@@ -305,8 +305,8 @@ These options are specific to the `SelectPaginator`.
 An array of [MessageSelectOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageSelectOption) to be added to the select menu.
 
 Note:
-- customId is not required, the paginator will update the customId to be: `&lt;prefix&gt;-[&lt;customId&gt;-]&lt;suffix&gt;` 
-where the suffix is the id of the received interaction that initiated the paginator.
+- customId is not required, the paginator will update the customId to be: `<prefix>-[<customId>-]<suffix>` 
+where the prefix is `paginator#customIdPrefix` and the suffix is the id of the received interaction that initiated the paginator.
 
 ### pagesMap
 
