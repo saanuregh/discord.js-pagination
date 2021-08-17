@@ -8,10 +8,8 @@ module.exports = {
 		.setDescription('Replies with a reaction based pagination!'),
 	async execute(interaction) {
     await interaction.deferReply();
-    const reactionPagination = new ReactionPaginationEmbed(interaction, pages,
-      { 
-        messageSender: messageSender 
-      }).on(PaginationEvents.COLLECT_ERROR(basicErrorHandler)).on(PaginationEvents.PAGINATION_END);
+    const reactionPagination = new ReactionPaginationEmbed(interaction, pages)
+      .on(PaginationEvents.COLLECT_ERROR(basicErrorHandler)).on(PaginationEvents.PAGINATION_END);
     await reactionPagination.send();
     return await reactionPagination.message;
 	},

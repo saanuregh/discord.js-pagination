@@ -8,7 +8,7 @@ module.exports = {
 		.setDescription('Replies with a button based pagination!'),
 	async execute(interaction) {
     await interaction.deferReply();
-    const reactionPagination = new ButtonPaginationEmbed(interaction, pages, { messageSender: messageSender });
+    const reactionPagination = new ButtonPaginationEmbed(interaction, pages);
     await reactionPagination.send();
     return await reactionPagination.message;
 	},

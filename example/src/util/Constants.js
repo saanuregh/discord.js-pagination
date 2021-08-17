@@ -23,8 +23,3 @@ module.exports.basicEndHandler = async ({ reason, paginator }) => {
     console.log(error);
   }
 };
-
-module.exports.messageSender = async (paginator) => {
-  await paginator.receivedPrompt.editReply(paginator.currentPageMessageOptions);
-  return paginator.receivedPrompt.fetchReply();
-}

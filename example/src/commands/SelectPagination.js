@@ -16,8 +16,7 @@ module.exports = {
         description: 'This will take you to page#' + i
       });
     const selectPaginationEmbed = new SelectPaginationEmbed(interaction, pages, {
-      selectMenuOptions: selectOptions,
-      messageSender: messageSender
+      selectMenuOptions: selectOptions
     });
     await selectPaginationEmbed.send();
     return await selectPaginationEmbed.message;
