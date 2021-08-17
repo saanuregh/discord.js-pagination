@@ -4,8 +4,8 @@ const { SelectPaginationEmbedDefaults } = require('../util/Defaults');
 
 class SelectPaginationEmbed extends ActionRowPaginationEmbed {
 
-	constructor(receivedPrompt, pages, options) {
-		super(receivedPrompt, pages,
+	constructor(interaction, pages, options) {
+		super(interaction, pages,
 			Util.mergeDefault(SelectPaginationEmbedDefaults, options));
 		this.messageActionRow.addComponents(new MessageSelectMenu({
 			customId: this._getCustomId('select-menu'),

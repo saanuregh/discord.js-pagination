@@ -3,8 +3,8 @@ const BasePaginationEmbed = require('./BasePaginationEmbed');
 const { ReactionPaginationDefaults } = require('../util/Defaults');
 
 class ReactionPaginationEmbed extends BasePaginationEmbed {
-	constructor(receivedPrompt, pages, options) {
-		super(receivedPrompt, pages,
+	constructor(interaction, pages, options) {
+		super(interaction, pages,
 			Util.mergeDefault(ReactionPaginationDefaults, options));
 
 		this.emojiList = this.options.emojiList;

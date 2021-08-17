@@ -3,10 +3,10 @@ const BasePaginationEmbed = require('./BasePaginationEmbed');
 
 
 class ActionRowPaginationEmbed extends BasePaginationEmbed {
-	constructor(receivedPrompt, pages, options) {
-		super(receivedPrompt, pages, options);
+	constructor(interaction, pages, options) {
+		super(interaction, pages, options);
 		this.customIdPrefix = this.options.customIdPrefix;
-		this.customIdSuffix = receivedPrompt.id;
+		this.customIdSuffix = interaction.id;
 		this.messageActionRow = new MessageActionRow({
 			type: 'ACTION_ROW',
 			customId: this._getCustomId('action-row')

@@ -2,18 +2,18 @@ const EventEmitter = require('events');
 const PaginationEvents = require('../util/PaginationEvents');
 
 class BasePaginationEmbed extends EventEmitter {
-	constructor(receivedPrompt, pages, options) {
+	constructor(interaction, pages, options) {
 		super();
 
-		if (!receivedPrompt)
+		if (!interaction)
 			throw new Error('The received prompt is undefined.');
-		if (!receivedPrompt.channel)
+		if (!interaction.channel)
 			throw new Error('The received prompt does not have a valid channel.');
 
-		Object.defineProperty(this, 'client', { value: receivedPrompt.client });
-		Object.defineProperty(this, 'user', {value: receivedPrompt.author || receivedPrompt.user });
-		Object.defineProperty(this, 'channel', { value: receivedPrompt.channel });
-		Object.defineProperty(this, 'receivedPrompt', { value: receivedPrompt });
+		Object.defineProperty(this, 'client', { value: interaction.client });
+		Object.defineProperty(this, 'user', {value: interaction.author || interaction.user });
+		Object.defineProperty(this, 'channel', { value: interaction.channel });
+		Object.defineProperty(this, 'interaction', { value: interaction });
 
 		this.pages = pages;
 		this.messageSender = options.messageSender;

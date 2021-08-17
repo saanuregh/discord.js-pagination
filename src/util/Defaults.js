@@ -4,7 +4,10 @@ exports.BasePaginationDefaults = {
 	shouldChangePage: ({ newPageIndex, previousPageIndex, paginator }) =>
 		!paginator.message.deleted && newPageIndex !== previousPageIndex,
 	footerResolver: (paginator) => `Page ${paginator.currentPageIndex + 1} / ${paginator.numberOfPages}`,
-	messageSender: (paginator) => paginator.channel.send(paginator.currentPageMessageOptions)
+	messageSender: async (paginator) => {
+		await paginator.interaction.editReply(paginator.currentPageMessageOptions);
+		return paginator.interaction.fetchReply();
+	}
 };
 
 exports.ReactionPaginationDefaults = {
