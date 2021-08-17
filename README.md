@@ -20,8 +20,6 @@ The design of this new update was heavily driven by the existing discord.js-pagi
 - [Paginator Properties](#paginator-properties)
 - [Paginator Options](#paginator-options)
 - [Paginator Events](#paginator-events)
-- [Installation](#Installation)
-- [Installation](#Installation)
 
 # Installation
 
