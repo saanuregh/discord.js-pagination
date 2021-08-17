@@ -39,16 +39,15 @@ module.exports = {
 
     const pageResolver = async ({ interaction, paginator }) => {
       const val = interaction.customId.toLowerCase();
-
       switch (val) {
         case `${paginator.customIdPrefix}-first-${paginator.customIdSuffix}`:
           return paginator.startingIndex;
         case `${paginator.customIdPrefix}-next-${paginator.customIdSuffix}`:
-          return paginator.currentPageIndex - 1;
+          return paginator.currentPageIndex + 1;
         case `${paginator.customIdPrefix}-delete-${paginator.customIdSuffix}`:
           await paginator.message.delete();
         case `${paginator.customIdPrefix}-previous-${paginator.customIdSuffix}`:
-          return paginator.currentPageIndex + 1;
+          return paginator.currentPageIndex - 1;
         case `${paginator.customIdPrefix}-last-${paginator.customIdSuffix}`:
           return paginator.numberOfPages - 1;
         default:
