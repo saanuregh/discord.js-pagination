@@ -1,9 +1,9 @@
-<div align="center">
-  <p>
-    <a href="https://nodei.co/npm/@psibean/discord.js-pagination
-/"><img src="https://nodei.co/npm/@psibean/discord.js-pagination.png?downloads=true&stars=true" alt="NPM info" /></a>
-  </p>
-</div>
+&lt;div align="center"&gt;
+  &lt;p&gt;
+    &lt;a href="https://nodei.co/npm/@psibean/discord.js-pagination
+/"&gt;&lt;img src="https://nodei.co/npm/@psibean/discord.js-pagination.png?downloads=true&stars=true" alt="NPM info" /&gt;&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
 
 
 # discord.js-pagination
@@ -12,7 +12,7 @@ A simple utility (or advanced - it's your choice) to paginate discord embeds. Bu
 To see how the example paginations look, checkout the [example bot](example/README.md) (the readme has gifs)!
 
 **Upcoming breaking change in 4.0.0**
-The design of this new update was heavily driven by the existing discord.js-pagination. There are plans to update the `pageResolver` to take in the collected args and paginator and return a `Promise<MessageEmbed | MessageEmbed` you wish to display. This way you will not have to construct all your embeds pre-emptively, but can instead provide a way to construct them dynamically per page change. This will have the benefit of replying to interactions faster.
+The design of this new update was heavily driven by the existing discord.js-pagination. There are plans to update the `pageResolver` to take in the collected args and paginator and return a `Promise&lt;MessageEmbed | MessageEmbed` you wish to display. This way you will not have to construct all your embeds pre-emptively, but can instead provide a way to construct them dynamically per page change. This will have the benefit of replying to interactions faster.
 
 ##### Table of Contents
 - [Installation](#installation)
@@ -35,7 +35,7 @@ For the below examples, the pages can be constructed as per the [example bot](ex
 
 ```js
 const pages = [];
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i &lt; 10; i++) {
   const pageEmbed = new MessageEmbed();
   pageEmbed
     .setTitle(`This embed is index ${i}!`)
@@ -82,7 +82,7 @@ const { SelectPaginator } = require('@psibean/discord.js-pagination');
 
 // The default pagesMap will map these option values to the index
 const selectOptions = [];
-for (let i = 0; i < 10; i++)
+for (let i = 0; i &lt; 10; i++)
 	selectOptions.push({
 		label: `"Page #${i + 1}`,
 		value: `${i}`,
@@ -139,8 +139,8 @@ An array of MessageEmbeds used as pages.
 
 The function used to send the intial page, it returns the message.
 
-(paginator): Promise<Message> | Message
-- paginator : This is a reference to the paginator instance.
+(paginator): Promise&lt;Message&gt; | Message
+- **paginator** : This is a reference to the paginator instance.
 
 Defaults to:
 ```js
@@ -154,10 +154,9 @@ Defaults to:
 
 This is the function used as the paginators collector filter.
 
-({ ...*, paginator }): Promise<boolean> | boolean
-- ...* : Includes any args provided by the collect listener.
-- paginator : This is a reference to the paginator instance.
-
+({ ...*, paginator }): Promise&lt;boolean&gt; | boolean
+- **...\*** : Includes any args provided by the collect listener.
+- **paginator** : This is a reference to the paginator instance.
 
 For the ReactionPaginator, defaults to:
 
@@ -179,9 +178,9 @@ For the ButtonPaginator and SelectPaginator, defaults to:
 
 This is the function used to determine what page to change to during a collect event, it should return the index of the new page.
 
-({ ...*, paginator }): Promise<integer> | integer
-- ...* : Includes any args provided by the collect listener.
-- paginator : This is a reference to the paginator instance.
+({ ...*, paginator }): Promise&lt;integer&gt; | integer
+- **...\*** : Includes any args provided by the collect listener.
+- **paginator** : This is a reference to the paginator instance.
 
 For the ReactionPaginator, defaults to:
 
@@ -223,11 +222,11 @@ For the SelectPaginator, defaults to:
 
 This is the function used to determine whether or not a page change should occur during a collect event. If not provided, a page change will always occur during a collect event.
 
-({ ...*, newPageIndex, currentPageIndex, paginator }): Promise<boolean> | boolean
-- ...* : Includes any args provided by the collect listener.
-- newPageIndex : This is the index of the page being changed to.
-- currentPageIndex : This is the index of the current page (before being changed).
-- paginator : This is a reference to the paginator instance.
+({ ...*, newPageIndex, currentPageIndex, paginator }): Promise&lt;boolean&gt; | boolean
+- **...\*** : Includes any args provided by the collect listener.
+- **newPageIndex** : This is the index of the page being changed to.
+- **currentPageIndex** : This is the index of the current page (before being changed).
+- **paginator** : This is a reference to the paginator instance.
 
 Defaults to:
 
@@ -240,8 +239,8 @@ Defaults to:
 
 This is the function used to set the footer of each page. If not provided the embeds will use whatever footers were originally set on them.
 
-(paginator): Promise<string> | string
-- paginator : This is a reference to the paginator instance.
+(paginator): Promise&lt;string&gt; | string
+- **paginator** : This is a reference to the paginator instance.
 
 Defaults to:
 
@@ -283,7 +282,7 @@ These options are specific to the `ButtonPaginator`.
 An array of [MessageButtonOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageButtonOptions) which will be added to the paginators action row.
 
 Note:
-- customId is not required, the paginator will update the customId to be: `<prefix>-[<customId>-]<suffix>` 
+- customId is not required, the paginator will update the customId to be: `&lt;prefix&gt;-[&lt;customId&gt;-]&lt;suffix&gt;` 
 where the suffix is the id of the received interaction that initiated the paginator.
 - type will be updated to `BUTTON`
 - style will default to `PRIMARY` if not set
@@ -310,7 +309,7 @@ These options are specific to the `SelectPaginator`.
 An array of [MessageSelectOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageSelectOption) to be added to the select menu.
 
 Note:
-- customId is not required, the paginator will update the customId to be: `<prefix>-[<customId>-]<suffix>` 
+- customId is not required, the paginator will update the customId to be: `&lt;prefix&gt;-[&lt;customId&gt;-]&lt;suffix&gt;` 
 where the suffix is the id of the received interaction that initiated the paginator.
 
 ### pagesMap
@@ -319,9 +318,9 @@ A function that returns a dictionary, or a dictionary. The dictionary should pro
 
 If a function:
 
-({ selectOptions, paginator}): Dictionary<K, V>
-- selectOptions : The selectOptions provided to the paginator after having their customId updated.
-- paginator : This is a reference to the paginator instance.
+({ selectOptions, paginator}): Dictionary&lt;K, V&gt;
+- **selectOptions** : The selectOptions provided to the paginator after having their customId updated.
+- **paginator** : This is a reference to the paginator instance.
 
 # Paginator Events
 
@@ -346,10 +345,10 @@ All paginators have the following events (by EventName):
 This event is raised in the paginator collectors collect event before the message is edited with a new page.
 
 Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
-- ...* : Includes any args provided by the collect listener.
-- newPageIndex : This is the index of the page being changed to.
-- currentPageIndex : This is the index of the current page (before being changed).
-- paginator : This is a reference to the paginator instance.
+- **...\*** : Includes any args provided by the collect listener.
+- **newPageIndex** : This is the index of the page being changed to.
+- **currentPageIndex** : This is the index of the current page (before being changed).
+- **paginator** : This is a reference to the paginator instance.
 
 ### COLLECT_END
 
@@ -358,8 +357,8 @@ Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
 This event is raised at the end of each collect handled by the paginator collector. Note that this won't be called if an error is thrown or if the paginator does not change page. Use the `COLLECT_ERROR` and `PAGE_CHANGED` events respectively in those cases.
 
 Parameters: ({ error, paginator })
-- error : This is the error that was caught.
-- paginator : This is a reference to the paginator instance.
+- **error** : This is the error that was caught.
+- **paginator** : This is a reference to the paginator instance.
 
 ### COLLECT_ERROR
 
@@ -368,8 +367,8 @@ Parameters: ({ error, paginator })
 This event is raised when an error occurs within the collect event of the paginators collector.
 
 Parameters: ({ error, paginator })
-- error : This is the error that was caught.
-- paginator : This is a reference to the paginator instance.
+- **error** : This is the error that was caught.
+- **paginator** : This is a reference to the paginator instance.
 
 ### COLLECT_START
 
@@ -378,8 +377,8 @@ Parameters: ({ error, paginator })
 This event is raised when an error occurs within the collect event of the paginators collector.
 
 Parameters: ({ error, paginator })
-- error : This is the error that was caught.
-- paginator : This is a reference to the paginator instance.
+- **error** : This is the error that was caught.
+- **paginator** : This is a reference to the paginator instance.
 
 ### PAGE_CHANGED
 
@@ -389,9 +388,9 @@ This event is raised in the paginator collectors collect event after the message
 
 Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
 - ...* : Includes any args provided by the collect listener.
-- newPageIndex : This is the index of the page being changed to.
-- currentPageIndex : This is the index of the current page (before being changed).
-- paginator : This is a reference to the paginator instance.
+- **newPageIndex** : This is the index of the page being changed to.
+- **currentPageIndex** : This is the index of the current page (before being changed).
+- **paginator** : This is a reference to the paginator instance.
 
 **It should be noted:** `paginator#currentPageIndex`, `paginator#previousPageIndex` and `paginator#currentPage` will now reflect values based on the `newPageIndex`, which is not the case for BEFORE_PAGE_CHANGED.
 
@@ -403,17 +402,26 @@ This event is raised in the paginator collectors collect event when `paginator#s
 
 Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
 - ...* : Includes any args provided by the collect listener.
-- newPageIndex : This is the index of the page being changed to.
-- currentPageIndex : This is the index of the current page (before being changed).
-- paginator : This is a reference to the paginator instance.
+- **newPageIndex** : This is the index of the page being changed to.
+- **currentPageIndex** : This is the index of the current page (before being changed).
+- **paginator** : This is a reference to the paginator instance.
 
 ### PAGINATION_END
 
 'paginationEnd'
 
-This event is raised in the paginator collectors end event.
+This event is raised in the paginators collector end event.
 
 Parameters: ({ collected, reason, paginator })
-- collected : The elements collected by the paginators collector.
-- reason : The reason the paginators collector ended.
-- paginator : This is a reference to the paginator instance.
+- **collected** : The elements collected by the paginators collector.
+- **reason** : The reason the paginators collector ended.
+- **paginator** : This is a reference to the paginator instance.
+
+### PAGINATION_READY
+
+'paginationReady'
+
+This event is raised once the paginators collector has been setup and the message has been sent with the starting page.
+
+Parameters: (paginator)
+- **paginator** : This is a reference to the paginator instance.

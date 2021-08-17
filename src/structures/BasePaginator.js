@@ -62,7 +62,9 @@ class BasePaginator extends EventEmitter {
 			throw new Error('There doesn\'t seem to be a valid messageSsender');
 	}
 
-	async _postSetup() {}
+	async _postSetup() {
+		this.emit(PaginatorEvents.PAGINATION_READY, this);
+	}
 
 	_shouldChangePage(changePageArgs) {
 		if (this.shouldChangePage)

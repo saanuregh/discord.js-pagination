@@ -28,6 +28,7 @@ class ReactionPaginator extends BasePaginator {
 	async _postSetup() {
 		for (const emoji of this.emojiList)
 			await this.message.react(emoji);
+		super._postSetup();
 	}
 
 	async _collectStart(args) {

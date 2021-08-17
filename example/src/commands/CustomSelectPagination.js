@@ -22,8 +22,13 @@ module.exports = {
         // Here we use the BEFORE_PAGE_CHANGED event to update the placeholder text
         paginator.selectMenu.placeholder = `You're now on page #${newPageIndex + 1}`;
       }
-     ).on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
+     ).on(PaginatorEvents.PAGINATION_READY, async paginator => {
+       paginator.selectMenu.disabled = false;
+       await paginator.message.edit(paginator.currentPageMessageOptions);
+    }).on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
       .on(PaginatorEvents.PAGINATION_END, basicEndHandler);
+    // Disabled the select menu before sending it.
+    selectPaginator.selectMenu.disabled = true;
     await selectPaginator.send();
     return await selectPaginator.message;
 	},

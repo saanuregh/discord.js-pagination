@@ -16,7 +16,7 @@ npm run start
 
 ### ButtonPaginator
 
-![button-paginator-gif](https://i.imgur.com/oeGcCOS.gif)
+![button-paginator-gif](https://imgur.com/Esqo43Z.gif)
 
 ### ReactionPaginator
 
@@ -24,7 +24,7 @@ npm run start
 
 ### SelectPaginator
 
-![select-paginator-gif](https://imgur.com/ljN7Nar.gif)
+![select-paginator-gif](https://imgur.com/lgNuRWC.gif)
 
 ## Usage
 
