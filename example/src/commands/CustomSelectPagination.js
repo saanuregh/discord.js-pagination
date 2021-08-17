@@ -1,10 +1,10 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { PaginatorEvents, SelectPaginator } = require('../../../src');
-const { basicEndHandler, basicErrorHandler, pages } = require('../util/Constants');
+const { pages, basicEndHandler, basicErrorHandler } = require('../util/Constants');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('select-pagination')
+		.setName('custom-select-pagination')
 		.setDescription('Replies with a select menu based pagination!'),
 	async execute(interaction) {
     await interaction.deferReply();
@@ -16,10 +16,14 @@ module.exports = {
         description: `This will take you to page #${i+1}`,
       });
     const selectPaginator = new SelectPaginator(interaction, pages, {
+      placeholder: 'You\'re now on page #1',
       selectOptions: selectOptions
-    })
-    .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
-    .on(PaginatorEvents.PAGINATION_END, basicEndHandler);
+    }).on(PaginatorEvents.BEFORE_PAGE_CHANGED, ({ newPageIndex, paginator }) => {
+        // Here we use the BEFORE_PAGE_CHANGED event to update the placeholder text
+        paginator.selectMenu.placeholder = `You're now on page #${newPageIndex + 1}`;
+      }
+     ).on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
+      .on(PaginatorEvents.PAGINATION_END, basicEndHandler);
     await selectPaginator.send();
     return await selectPaginator.message;
 	},

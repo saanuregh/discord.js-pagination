@@ -1,11 +1,11 @@
 const { Util } = require('discord.js');
-const BasePaginationEmbed = require('./BasePaginationEmbed');
-const { ReactionPaginationDefaults } = require('../util/Defaults');
+const BasePaginator = require('./BasePaginator');
+const { ReactionPaginatorDefaults } = require('../util/Defaults');
 
-class ReactionPaginationEmbed extends BasePaginationEmbed {
+class ReactionPaginator extends BasePaginator {
 	constructor(interaction, pages, options) {
 		super(interaction, pages,
-			Util.mergeDefault(ReactionPaginationDefaults, options));
+			Util.mergeDefault(ReactionPaginatorDefaults, options));
 
 		this.emojiList = this.options.emojiList;
 	}
@@ -36,4 +36,4 @@ class ReactionPaginationEmbed extends BasePaginationEmbed {
 	}
 }
 
-module.exports = ReactionPaginationEmbed;
+module.exports = ReactionPaginator;

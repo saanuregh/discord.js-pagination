@@ -1,21 +1,19 @@
 const { Util } = require('discord.js');
-const ActionRowPaginationEmbed = require('./ActionRowPaginationEmbed');
-const { ButtonPaginationEmbedDefaults } = require('../util/Defaults');
+const ActionRowPaginator = require('./ActionRowPaginator');
+const { ButtonPaginatorDefaults } = require('../util/Defaults');
 
-class SelectPaginationEmbed extends ActionRowPaginationEmbed {
+class SelectPaginator extends ActionRowPaginator {
 
 	constructor(interaction, pages, options) {
 		super(interaction, pages,
-			Util.mergeDefault(ButtonPaginationEmbedDefaults, options));
+			Util.mergeDefault(ButtonPaginatorDefaults, options));
 
 		for (const button of this.options.buttons) {
+			button.type = 'BUTTON';
 			if (button.customId)
 				button.customId = this._getCustomId(button.customId);
 			else
 				button.customId = this._getCustomId(button.label);
-
-			if (!button.type)
-				button.type = 'BUTTON';
 
 			if (!button.style)
 				button.style = 'PRIMARY';
@@ -25,4 +23,4 @@ class SelectPaginationEmbed extends ActionRowPaginationEmbed {
 	}
 }
 
-module.exports = SelectPaginationEmbed;
+module.exports = SelectPaginator;

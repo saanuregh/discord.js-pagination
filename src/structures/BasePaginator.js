@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
-const PaginationEvents = require('../util/PaginationEvents');
+const PaginatorEvents = require('../util/PaginatorEvents');
 
-class BasePaginationEmbed extends EventEmitter {
+class BasePaginator extends EventEmitter {
 	constructor(interaction, pages, options) {
 		super();
 
@@ -45,7 +45,7 @@ class BasePaginationEmbed extends EventEmitter {
 	}
 
 	_handleCollectEnd(collected, reason) {
-		this.emit(PaginationEvents.PAGINATION_END, { collected, reason, paginator: this });
+		this.emit(PaginatorEvents.PAGINATION_END, { collected, reason, paginator: this });
 		this.removeAllListeners();
 	}
 
@@ -71,11 +71,11 @@ class BasePaginationEmbed extends EventEmitter {
 	}
 
 	_collectStart(args) {
-		this.emit(PaginationEvents.COLLECT_START, args);
+		this.emit(PaginatorEvents.COLLECT_START, args);
 	}
 
 	_collectEnd(args) {
-		this.emit(PaginationEvents.COLLECT_END, args);
+		this.emit(PaginatorEvents.COLLECT_END, args);
 	}
 
 	async send() {
@@ -98,8 +98,8 @@ class BasePaginationEmbed extends EventEmitter {
 		// this try / catch is to handle the edge case where a collect event is fired after a message delete call
 		// but before the delete is complete, handling is offloaded to the user via collect error event
 		try {
-			await this._collectStart(this.getCollectorArgs(args));
 			const collectorArgs = this.getCollectorArgs(args);
+			await this._collectStart(collectorArgs);
 			const newPageIndex = await this.pageResolver(collectorArgs);
 			const changePageArgs = {
 				...collectorArgs,
@@ -107,10 +107,13 @@ class BasePaginationEmbed extends EventEmitter {
 				currentPageIndex: this.currentPageIndex,
 				paginator: this
 			};
-			await this.changePage(changePageArgs);
-			await this._collectEnd(collectorArgs);
+			// Guard against a message deletion in the page resolver.
+			if (!this.message.deleted) {
+				await this.changePage(changePageArgs);
+				await this._collectEnd(collectorArgs);
+			}
 		} catch(error) {
-			this.emit(PaginationEvents.COLLECT_ERROR, { error, paginator: this });
+			this.emit(PaginatorEvents.COLLECT_ERROR, { error, paginator: this });
 		}
 	}
 
@@ -119,11 +122,11 @@ class BasePaginationEmbed extends EventEmitter {
 			this._previousPageIndex = this.currentPageIndex;
 			this.currentPageIndex = changePageArgs.newPageIndex;
 			await this._resolveFooter();
-			this.emit(PaginationEvents.BEFORE_PAGE_CHANGED, changePageArgs);
+			this.emit(PaginatorEvents.BEFORE_PAGE_CHANGED, changePageArgs);
 			await this.message.edit(this.currentPageMessageOptions);
-			this.emit(PaginationEvents.PAGE_CHANGED, changePageArgs);
+			this.emit(PaginatorEvents.PAGE_CHANGED, changePageArgs);
 		} else {
-			this.emit(PaginationEvents.PAGE_UNCHANGED);
+			this.emit(PaginatorEvents.PAGE_UNCHANGED);
 		}
 	}
 
@@ -208,4 +211,4 @@ class BasePaginationEmbed extends EventEmitter {
 	}
 }
 
-module.exports = BasePaginationEmbed;
+module.exports = BasePaginator;

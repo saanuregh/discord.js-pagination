@@ -1,12 +1,12 @@
 const { MessageActionRow } = require('discord.js');
-const BasePaginationEmbed = require('./BasePaginationEmbed');
+const BasePaginator = require('./BasePaginator');
 
 
-class ActionRowPaginationEmbed extends BasePaginationEmbed {
+class ActionRowPaginator extends BasePaginator {
 	constructor(interaction, pages, options) {
 		super(interaction, pages, options);
-		this.customIdPrefix = this.options.customIdPrefix;
-		this.customIdSuffix = interaction.id;
+		this._customIdPrefix = this.options.customIdPrefix;
+		this._customIdSuffix = interaction.id;
 		this.messageActionRow = new MessageActionRow({
 			type: 'ACTION_ROW',
 			customId: this._getCustomId('action-row')
@@ -39,9 +39,17 @@ class ActionRowPaginationEmbed extends BasePaginationEmbed {
 		return { ...super.currentPageMessageOptions, components: [this.messageActionRow] };
 	}
 
+	get customIdPrefix() {
+		return this._customIdPrefix;
+	}
+
+	get customIdSuffix() {
+		return this._customIdSuffix;
+	}
+
 	_getCustomId(label) {
 		return `${this.customIdPrefix}-${label}-${this.customIdSuffix}`;
 	}
 }
 
-module.exports = ActionRowPaginationEmbed;
+module.exports = ActionRowPaginator;

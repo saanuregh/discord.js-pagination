@@ -1,9 +1,9 @@
 module.exports = {
-	BasePaginationEmbed: require('./structures/BasePaginationEmbed'),
-	ButtonPaginationEmbed: require('./structures/ButtonPaginationEmbed'),
-	ActionRowPaginationEmbed: require('./structures/ActionRowPaginationEmbed'),
+	BasePaginator: require('./structures/BasePaginator'),
+	ButtonPaginator: require('./structures/ButtonPaginator'),
+	ActionRowPaginator: require('./structures/ActionRowPaginator'),
 	Defaults: require('./util/Defaults'),
-	PaginationEvents: require('./util/PaginationEvents'),
-	ReactionPaginationEmbed: require('./structures/ReactionPaginationEmbed'),
-	SelectPaginationEmbed: require('./structures/SelectPaginationEmbed')
+	PaginatorEvents: require('./util/PaginatorEvents'),
+	ReactionPaginator: require('./structures/ReactionPaginator'),
+	SelectPaginator: require('./structures/SelectPaginator')
 };

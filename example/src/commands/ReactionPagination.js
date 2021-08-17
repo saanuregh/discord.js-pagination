@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { PaginationEvents, ReactionPaginationEmbed } = require('../../../src');
-const { basicErrorHandler, basicEndHandler, messageSender, pages } = require('../util/Constants');
+const { PaginatorEvents, ReactionPaginator } = require('../../../src');
+const { basicErrorHandler, pages, basicEndHandler } = require('../util/Constants');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -8,9 +8,10 @@ module.exports = {
 		.setDescription('Replies with a reaction based pagination!'),
 	async execute(interaction) {
     await interaction.deferReply();
-    const reactionPagination = new ReactionPaginationEmbed(interaction, pages)
-      .on(PaginationEvents.COLLECT_ERROR(basicErrorHandler)).on(PaginationEvents.PAGINATION_END);
-    await reactionPagination.send();
+    const reactionPaginator = new ReactionPaginator(interaction, pages)
+      .on(PaginatorEvents.COLLECT_ERROR(basicErrorHandler))
+      .on(PaginatorEvents.PAGINATION_END, basicEndHandler);
+    await reactionPaginator.send();
     return await reactionPagination.message;
 	},
 };

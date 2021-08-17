@@ -1,14 +1,15 @@
 const { MessageSelectMenu, Util } = require('discord.js');
-const ActionRowPaginationEmbed = require('./ActionRowPaginationEmbed');
-const { SelectPaginationEmbedDefaults } = require('../util/Defaults');
+const ActionRowPaginator = require('./ActionRowPaginator');
+const { SelectPaginatorDefaults } = require('../util/Defaults');
 
-class SelectPaginationEmbed extends ActionRowPaginationEmbed {
+class SelectPaginator extends ActionRowPaginator {
 
 	constructor(interaction, pages, options) {
 		super(interaction, pages,
-			Util.mergeDefault(SelectPaginationEmbedDefaults, options));
+			Util.mergeDefault(SelectPaginatorDefaults, options));
 		this.messageActionRow.addComponents(new MessageSelectMenu({
 			customId: this._getCustomId('select-menu'),
+			placeholder: options.placeholder,
 			minValues: 1,
 			maxValues: 1
 		}));
@@ -30,4 +31,4 @@ class SelectPaginationEmbed extends ActionRowPaginationEmbed {
 	}
 }
 
-module.exports = SelectPaginationEmbed;
+module.exports = SelectPaginator;

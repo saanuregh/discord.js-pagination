@@ -1,4 +1,4 @@
-exports.BasePaginationDefaults = {
+exports.BasePaginatorDefaults = {
 	startingIndex: 0,
 	idle: 6e4,
 	shouldChangePage: ({ newPageIndex, previousPageIndex, paginator }) =>
@@ -10,8 +10,8 @@ exports.BasePaginationDefaults = {
 	}
 };
 
-exports.ReactionPaginationDefaults = {
-	...exports.BasePaginationDefaults,
+exports.ReactionPaginatorDefaults = {
+	...exports.BasePaginatorDefaults,
 	emojiList: ['⏪', '⏩'],
 	collectorFilter: ({ reaction, user, paginator }) =>
 		user === paginator.user && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
@@ -27,23 +27,21 @@ exports.ReactionPaginationDefaults = {
 	}
 };
 
-exports.ActionRowPaginationEmbedDefaults = {
-	...exports.BasePaginationDefaults,
-	customIdPrefix: 'pagination',
+exports.ActionRowPaginatorDefaults = {
+	...exports.BasePaginatorDefaults,
+	customIdPrefix: 'paginator',
 	collectorFilter: ({ interaction, paginator }) =>
 		interaction.user === paginator.user && !interaction.user.bot
 };
 
-exports.ButtonPaginationEmbedDefaults = {
-	...exports.ActionRowPaginationEmbedDefaults,
+exports.ButtonPaginatorDefaults = {
+	...exports.ActionRowPaginatorDefaults,
 	buttons: [
 		{
-			label: 'Previous',
-			style: 'PRIMARY'
+			label: 'Previous'
 		},
 		{
-			label: 'Next',
-			style: 'PRIMARY'
+			label: 'Next'
 		}
 	],
 	pageResolver: ({ interaction, paginator }) => {
@@ -56,11 +54,8 @@ exports.ButtonPaginationEmbedDefaults = {
 	}
 };
 
-exports.SelectPaginationEmbedDefaults = {
-	...exports.ActionRowPaginationEmbedDefaults,
-	messageActionRowOptions: {
-		type: 'ACTION_ROW'
-	},
+exports.SelectPaginatorDefaults = {
+	...exports.ActionRowPaginatorDefaults,
 	pagesMap: ({ selectOptions, paginator }) => {
 		const pagesMap = {};
 		for (let i = 0; i < paginator.numberOfPages; i++)
