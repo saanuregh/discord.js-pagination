@@ -11,7 +11,7 @@ A simple utility (or advanced - it's your choice) to paginate discord embeds. Bu
 
 To see how the example paginations look, checkout the [example bot](example/README.md) (the readme has gifs)!
 
-**Upcoming breaking change in 4.0.0**
+## **Upcoming breaking change in 4.0.0**
 The design of this new update was heavily driven by the existing discord.js-pagination. There are plans to update the `pageResolver` to take in the collected args and paginator and return a `Promise&lt;MessageEmbed | MessageEmbed` you wish to display. This way you will not have to construct all your embeds pre-emptively, but can instead provide a way to construct them dynamically per page change. This will have the benefit of replying to interactions faster.
 
 ##### Table of Contents
@@ -107,7 +107,7 @@ These properties are common to all paginators.
 - **interaction** : The interaction that initiated the instantiation of the paginator.
 - **user** : The user who sent the interaction that instantiated the paginator.
 - **channel** : The channel where the interaction came from, this is also where the paginator message will be sent.
-- **pages** : The pages provided in the paginator options.
+- **pages** : The pages provided in the paginator constructor.
 - **startingIndex** : The starting index provided in the paginator options.
 - **numberOfPages** : The number of pages.
 - **previousPageIndex** : The index of the previous page, -1 indicates no page change.
@@ -130,10 +130,6 @@ The following options are available for the respective paginators.
 ## Base Options
 
 All paginators can take the options of their respective collector, see discord.js documentation for those. Instead of filter, provide `collectorFilter`. The options listed here are available to all paginators.
-
-### pages 
-
-An array of MessageEmbeds used as pages.
 
 ### messageSender
 
