@@ -1,9 +1,9 @@
-&lt;div align="center"&gt;
-  &lt;p&gt;
-    &lt;a href="https://nodei.co/npm/@psibean/discord.js-pagination
-/"&gt;&lt;img src="https://nodei.co/npm/@psibean/discord.js-pagination.png?downloads=true&stars=true" alt="NPM info" /&gt;&lt;/a&gt;
-  &lt;/p&gt;
-&lt;/div&gt;
+<div align="center">
+  <p>
+    <a href="https://nodei.co/npm/@psibean/discord.js-pagination
+/"><img src="https://nodei.co/npm/@psibean/discord.js-pagination.png?downloads=true&stars=true" alt="NPM info" /></a>
+  </p>
+</div>
 
 
 # discord.js-pagination
