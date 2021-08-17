@@ -13,16 +13,16 @@ class SelectPaginationEmbed extends ActionRowPaginationEmbed {
 			maxValues: 1
 		}));
 
-		for (const selectMenuOption of this.options.selectMenuOptions)
+		for (const selectMenuOption of this.options.selectOptions)
 			if (selectMenuOption.customId && !selectMenuOption.customId.startsWith(this.customIdPrefix))
 				selectMenuOption.customId = this._getCustomId(selectMenuOption.customId);
 			else
 				selectMenuOption.customId = this._getCustomId('select-option');
 
 		this.pagesMap = typeof this.options.pagesMap === 'function' ?
-			this.options.pagesMap({ selectMenuOptions: this.options.selectMenuOptions, paginator: this }) : this.options.pagesMap;
+			this.options.pagesMap({ selectOptions: this.options.selectOptions, paginator: this }) : this.options.pagesMap;
 
-		this.selectMenu.addOptions(this.options.selectMenuOptions);
+		this.selectMenu.addOptions(this.options.selectOptions);
 	}
 
 	get selectMenu() {

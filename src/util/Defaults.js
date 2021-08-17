@@ -61,10 +61,10 @@ exports.SelectPaginationEmbedDefaults = {
 	messageActionRowOptions: {
 		type: 'ACTION_ROW'
 	},
-	pagesMap: ({ selectMenuOptions, paginator }) => {
+	pagesMap: ({ selectOptions, paginator }) => {
 		const pagesMap = {};
 		for (let i = 0; i < paginator.numberOfPages; i++)
-			pagesMap[selectMenuOptions[i].value] = i;
+			pagesMap[selectOptions[i].value] = i;
 		return pagesMap;
 	},
 	pageResolver: ({ interaction, paginator }) => {
