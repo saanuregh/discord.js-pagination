@@ -90,7 +90,7 @@ for (let i = 0; i < 10; i++)
 	});
 
 const selectPaginator = new SelectPaginator(interaction, pages);
-await buttonPaginator.send();
+await selectPaginator.send();
 ```
 
 # Paginator Properties
