@@ -44,11 +44,6 @@ class BasePaginationEmbed extends EventEmitter {
 		};
 	}
 
-	_handleCollectError(collectErrorOptions) {
-		if (this.collectErrorHandler)
-			return this.collectErrorHandler(collectErrorOptions);
-	}
-
 	_handleCollectEnd(collected, reason) {
 		this.emit(PaginationEvents.PAGINATION_END, { collected, reason, paginator: this });
 		this.removeAllListeners();
@@ -101,7 +96,7 @@ class BasePaginationEmbed extends EventEmitter {
 
 	async _handleCollect(...args) {
 		// this try / catch is to handle the edge case where a collect event is fired after a message delete call
-		// but before the delete is complete, handling is offloaded to the user via collectErrorHandler
+		// but before the delete is complete, handling is offloaded to the user via collect error event
 		try {
 			await this._collectStart(this.getCollectorArgs(args));
 			const collectorArgs = this.getCollectorArgs(args);
@@ -190,12 +185,6 @@ class BasePaginationEmbed extends EventEmitter {
 		return this;
 	}
 
-	setTimeout(timeout) {
-		if (this.notSent)
-			this.timeout = timeout;
-		return this;
-	}
-
 	setPageResolver(pageResolver) {
 		this.pageResolver = pageResolver;
 		return this;
@@ -206,19 +195,9 @@ class BasePaginationEmbed extends EventEmitter {
 		return this;
 	}
 
-	setCollectErrorHandler(collectErrorHandler) {
-		this.collectErrorHandler = collectErrorHandler;
-		return this;
-	}
-
 	setStartingIndex(startingIndex) {
 		if (this.notSent)
 			this.startingIndex = startingIndex;
-		return this;
-	}
-
-	setCollectorEndHandler(collectorEndHandler) {
-		this.collectorEndHandler = collectorEndHandler;
 		return this;
 	}
 
