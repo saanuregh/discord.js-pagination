@@ -5,22 +5,23 @@
   </p>
 </div>
 
-
 # discord.js-pagination
 A simple utility (or advanced - it's your choice) to paginate discord embeds. Built on discord.js@^13.0.0.
 
 To see how the example paginations look, checkout the [example bot](example/README.md) (the readme has gifs)!
 
-## **Upcoming breaking change in 4.0.0**
-The design of this new update was heavily driven by the existing discord.js-pagination. There are plans to update the `pageResolver` to take in the collected args and paginator and return a `Promise<MessageEmbed> | MessageEmbed` you wish to display. This way you will not have to construct all your embeds pre-emptively, but can instead provide a way to construct them dynamically per page change. This will have the benefit of replying to interactions faster.
+### Key Features
+- Custom emoji reactions with the ReactionPaginator (see the example app).
+- Custom button pagination with the ButtonPaginator (see the example app).
+- Custom select menu pagination with the SelectPaginator (see the example app).
+- If you have a global interaction listener you can ignore paginator interactions by checking: `interaction.customId.startsWith("paginator")` - this prefix is customizable, set it on all of your paginators.
 
-##### Table of Contents
+### Table of Contents
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
 - [Paginator Properties](#paginator-properties)
 - [Paginator Options](#paginator-options)
 - [Paginator Events](#paginator-events)
-
 # Installation
 
 * `npm install @psibean/discord.js-pagination`
