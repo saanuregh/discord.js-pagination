@@ -6,8 +6,10 @@ const BasePaginator = require('./BasePaginator');
 class ActionRowPaginator extends BasePaginator {
   constructor(interaction, pages, options) {
     super(interaction, pages, options);
-    this._customIdPrefix = this.options.customIdPrefix;
-    this._customIdSuffix = interaction.id;
+
+    Object.defineProperty(this, 'customIdPrefix', { value: this.options.customIdPrefix });
+    Object.defineProperty(this, 'customIdSuffix', { value: interaction.id });
+
     this.messageActionRow = new MessageActionRow({
       type: 'ACTION_ROW',
       customId: this._getCustomId('action-row'),
@@ -38,14 +40,6 @@ class ActionRowPaginator extends BasePaginator {
 
   get currentPageMessageOptions() {
     return { ...super.currentPageMessageOptions, components: [this.messageActionRow] };
-  }
-
-  get customIdPrefix() {
-    return this._customIdPrefix;
-  }
-
-  get customIdSuffix() {
-    return this._customIdSuffix;
   }
 
   _getCustomId(label) {
