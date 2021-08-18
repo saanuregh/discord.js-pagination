@@ -10,8 +10,8 @@ class SelectPaginator extends ActionRowPaginator {
 
     for (const button of this.options.buttons) {
       button.type = 'BUTTON';
-      if (button.customId) button.customId = this._getCustomId(button.customId);
-      else button.customId = this._getCustomId(button.label);
+      if (button.customId) button.customId = this._generateCustomId(button.customId);
+      else button.customId = this._generateCustomId(button.label);
 
       if (!button.style) button.style = 'PRIMARY';
     }

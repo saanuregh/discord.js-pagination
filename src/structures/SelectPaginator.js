@@ -9,7 +9,7 @@ class SelectPaginator extends ActionRowPaginator {
     super(interaction, pages, Util.mergeDefault(SelectPaginatorDefaults, options));
     this.messageActionRow.addComponents(
       new MessageSelectMenu({
-        customId: this._getCustomId('select-menu'),
+        customId: this._generateCustomId('select-menu'),
         placeholder: options.placeholder,
         minValues: 1,
         maxValues: 1,
@@ -18,9 +18,9 @@ class SelectPaginator extends ActionRowPaginator {
 
     for (const selectMenuOption of this.options.selectOptions) {
       if (selectMenuOption.customId && !selectMenuOption.customId.startsWith(this.customIdPrefix)) {
-        selectMenuOption.customId = this._getCustomId(selectMenuOption.customId);
+        selectMenuOption.customId = this._generateCustomId(selectMenuOption.customId);
       } else {
-        selectMenuOption.customId = this._getCustomId('select-option');
+        selectMenuOption.customId = this._generateCustomId('select-option');
       }
     }
 

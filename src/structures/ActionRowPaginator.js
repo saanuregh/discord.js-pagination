@@ -12,7 +12,7 @@ class ActionRowPaginator extends BasePaginator {
 
     this.messageActionRow = new MessageActionRow({
       type: 'ACTION_ROW',
-      customId: this._getCustomId('action-row'),
+      customId: this._generateCustomId('action-row'),
     });
   }
 
@@ -42,7 +42,7 @@ class ActionRowPaginator extends BasePaginator {
     return { ...super.currentPageMessageOptions, components: [this.messageActionRow] };
   }
 
-  _getCustomId(label) {
+  _generateCustomId(label) {
     return `${this.customIdPrefix}-${label}-${this.customIdSuffix}`;
   }
 }
