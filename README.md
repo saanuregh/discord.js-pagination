@@ -74,7 +74,7 @@ await buttonPaginator.send();
 
 This allows pages to be navigated using a select menu.
 
-For the select pagination embed you'll need to supply an array of [MessageSelectOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageSelectOption) to the pagination options via `selectOptions`. By default the pagination will map the value of the provided options to your pages index based on their ordering. Then the page change will be determined by the selected value and this mapping. If you want to map your select options and pages differently you can provide the `pagesMap` ({ selectOptions, paginator }) function which should return a dictionary. You'll then want to provide a custom `pageResolver`.
+For the select pagination embed you'll need to supply an array of [MessageSelectOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageSelectOption) to the pagination options via `selectOptions`. By default the pagination will map the value of the provided options to your pages index based on their ordering. Then the page change will be determined by the selected value and this mapping. If you want to map your select options and pages differently you can provide the `pagesMap` ({ selectOptions, paginator }) function which should return a dictionary. You'll then want to provide a custom `pageIndexResolver`.
 
 ```js
 const { SelectPaginator } = require('@psibean/discord.js-pagination');
@@ -169,7 +169,7 @@ For the ButtonPaginator and SelectPaginator, defaults to:
 
 **Note: For these last two interactions will only be handled if the incoming `Interaction#customId` starts with a matching `ActionRowPaginator#customIdPrefix` and ends with a matching `ActionRowPaginator#customIdSuffix`.**
 
-### pageResolver
+### pageIndexResolver
 
 This is the function used to determine what page to change to during a collect event, it should return the index of the new page.
 

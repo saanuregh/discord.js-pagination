@@ -37,7 +37,7 @@ module.exports = {
       },
     ];
 
-    const pageResolver = async ({ interaction, paginator }) => {
+    const pageIndexResolver = async ({ interaction, paginator }) => {
       const val = interaction.customId.toLowerCase();
       switch (val) {
         case `${paginator.customIdPrefix}-first-${paginator.customIdSuffix}`:
@@ -71,7 +71,7 @@ module.exports = {
 
     const buttonPaginator = new ButtonPaginator(interaction, pages, {
       buttons,
-      pageResolver,
+      pageIndexResolver,
     })
       .on(PaginatorEvents.PAGINATION_READY, async paginator => {
         for (const button of paginator.messageActionRow.components) {

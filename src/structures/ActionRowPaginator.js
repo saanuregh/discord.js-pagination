@@ -4,12 +4,11 @@ const { MessageActionRow } = require('discord.js');
 const BasePaginator = require('./BasePaginator');
 
 class ActionRowPaginator extends BasePaginator {
-  constructor(interaction, pages, options) {
-    super(interaction, pages, options);
+  constructor(interaction, options) {
+    super(interaction, options);
 
     Object.defineProperty(this, 'customIdPrefix', { value: this.options.customIdPrefix });
     Object.defineProperty(this, 'customIdSuffix', { value: interaction.id });
-
     this.messageActionRow = new MessageActionRow({
       type: 'ACTION_ROW',
       customId: this._generateCustomId('action-row'),

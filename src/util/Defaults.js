@@ -10,6 +10,11 @@ exports.BasePaginatorDefaults = {
     await paginator.interaction.editReply(paginator.currentPageMessageOptions);
     return paginator.interaction.fetchReply();
   },
+  mapPages: ({ pagesMap, pagesCache }) => {
+    for (const i in pagesMap) {
+      pagesCache.set(i, pagesMap[i]);
+    }
+  },
 };
 
 exports.ReactionPaginatorDefaults = {
@@ -17,7 +22,7 @@ exports.ReactionPaginatorDefaults = {
   emojiList: ['⏪', '⏩'],
   collectorFilter: ({ reaction, user, paginator }) =>
     user === paginator.user && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
-  pageResolver: ({ reaction, paginator }) => {
+  pageIndexResolver: ({ reaction, paginator }) => {
     switch (reaction.emoji.name) {
       case paginator.emojiList[0]:
         return paginator.currentPageIndex - 1;
@@ -45,7 +50,7 @@ exports.ButtonPaginatorDefaults = {
       label: 'Next',
     },
   ],
-  pageResolver: ({ interaction, paginator }) => {
+  pageIndexResolver: ({ interaction, paginator }) => {
     const val = interaction.customId.toLowerCase();
     if (val.includes('prev')) return paginator.currentPageIndex - 1;
     else if (val.includes('next')) return paginator.currentPageIndex + 1;
@@ -55,13 +60,13 @@ exports.ButtonPaginatorDefaults = {
 
 exports.SelectPaginatorDefaults = {
   ...exports.ActionRowPaginatorDefaults,
-  pagesMap: ({ selectOptions, paginator }) => {
-    const pagesMap = {};
-    for (let i = 0; i < paginator.numberOfPages; i++) pagesMap[selectOptions[i].value] = i;
-    return pagesMap;
+  mapPages: ({ selectOptions, pages, pagesCache }) => {
+    for (const i in pages) {
+      pagesCache.set(selectOptions[i].value, pages[i]);
+    }
   },
-  pageResolver: ({ interaction, paginator }) => {
+  pageIndexResolver: ({ interaction }) => {
     const [selectedValue] = interaction.values;
-    return paginator.pagesMap[selectedValue];
+    return selectedValue;
   },
 };

@@ -9,7 +9,7 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply();
     const emojiList = ['⏪', '❌', '⏩'];
-    const pageResolver = async ({ reaction, paginator }) => {
+    const pageIndexResolver = async ({ reaction, paginator }) => {
       switch (reaction.emoji.name) {
         case paginator.emojiList[0]:
           return paginator.currentPageIndex + 1;
@@ -24,7 +24,7 @@ module.exports = {
     };
     const reactionPaginator = new ReactionPaginator(interaction, pages, {
       emojiList,
-      pageResolver,
+      pageIndexResolver,
     })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
       .on(PaginatorEvents.PAGINATION_END, basicEndHandler);

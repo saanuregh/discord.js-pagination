@@ -1,10 +1,11 @@
 'use strict';
 
 const EventEmitter = require('events');
+const { Collection } = require('discord.js');
 const PaginatorEvents = require('../util/PaginatorEvents');
 
 class BasePaginator extends EventEmitter {
-  constructor(interaction, pages, options) {
+  constructor(interaction, options) {
     super();
 
     if (!interaction) throw new Error('The received prompt is undefined.');
@@ -14,15 +15,20 @@ class BasePaginator extends EventEmitter {
     Object.defineProperty(this, 'user', { value: interaction.author || interaction.user });
     Object.defineProperty(this, 'channel', { value: interaction.channel });
     Object.defineProperty(this, 'interaction', { value: interaction });
+    Object.defineProperty(this, 'pageCache', { value: new Collection() });
 
-    this.pages = pages;
-    this.messageSender = options.messageSender;
     this.options = options;
+    this.initialPages = options.pages;
+    this.messageSender = options.messageSender;
     this.collectorFilter = options.collectorFilter;
-    this.pageResolver = options.pageResolver;
+    this.pageIndexResolver = options.pageIndexResolver;
+    this.pageEmbedResolver = options.pageEmbedResolver;
     this.shouldChangePage = options.shouldChangePage;
     this.footerResolver = options.footerResolver;
     this.startingIndex = options.startingIndex;
+    if (options.pages && options.mapPages) {
+      options.mapPages(options.pages, this);
+    }
   }
 
   _createCollector() {
@@ -96,7 +102,7 @@ class BasePaginator extends EventEmitter {
     try {
       const collectorArgs = this.getCollectorArgs(args);
       await this._collectStart(collectorArgs);
-      const newPageIndex = await this.pageResolver(collectorArgs);
+      const newPageIndex = await this.pageIndexResolver(collectorArgs);
       const changePageArgs = {
         ...collectorArgs,
         newPageIndex,
@@ -178,8 +184,8 @@ class BasePaginator extends EventEmitter {
     return this;
   }
 
-  setPageResolver(pageResolver) {
-    this.pageResolver = pageResolver;
+  setPageIndexResolver(pageIndexResolver) {
+    this.pageIndexResolver = pageIndexResolver;
     return this;
   }
 
