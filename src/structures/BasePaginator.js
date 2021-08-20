@@ -11,7 +11,7 @@ class BasePaginator extends EventEmitter {
     if (!interaction.channel) throw new Error('The received prompt does not have a valid channel.');
 
     Object.defineProperty(this, 'client', { value: interaction.client });
-    Object.defineProperty(this, 'user', { value: interaction.author || interaction.user });
+    Object.defineProperty(this, 'user', { value: interaction.user });
     Object.defineProperty(this, 'channel', { value: interaction.channel });
     Object.defineProperty(this, 'interaction', { value: interaction });
 
