@@ -10,7 +10,7 @@ module.exports = {
     .setDescription('Replies with a button based pagination!'),
   async execute(interaction) {
     await interaction.deferReply();
-    const buttonPaginator = new ButtonPaginator(interaction, pages);
+    const buttonPaginator = new ButtonPaginator(interaction, { initialPages: pages });
     await buttonPaginator.send();
     return buttonPaginator.message;
   },

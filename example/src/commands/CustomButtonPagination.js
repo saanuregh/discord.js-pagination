@@ -40,42 +40,37 @@ module.exports = {
     ];
 
     // eslint-disable-next-line no-shadow
-    const pageIndexResolver = async ({ interaction, paginator }) => {
+    const pageIdentifierResolver = async ({ interaction, paginator }) => {
       const val = interaction.customId.toLowerCase();
+      let newPageIdentifier = paginator.currentPageIdentifier;
       switch (val) {
         case `${paginator.customIdPrefix}-first-${paginator.customIdSuffix}`:
-          return paginator.startingIndex;
+          return paginator.startingPageIdentifier;
         case `${paginator.customIdPrefix}-next-${paginator.customIdSuffix}`:
-          return paginator.currentPageIndex + 1;
+          newPageIdentifier = paginator.currentPageIdentifier + 1;
+          break;
         case `${paginator.customIdPrefix}-delete-${paginator.customIdSuffix}`:
           await paginator.message.delete();
           break;
         case `${paginator.customIdPrefix}-previous-${paginator.customIdSuffix}`:
-          return paginator.currentPageIndex - 1;
+          newPageIdentifier = paginator.currentPageIdentifier - 1;
+          break;
         case `${paginator.customIdPrefix}-last-${paginator.customIdSuffix}`:
-          return paginator.numberOfPages - 1;
+          return paginator.maxNumberOfPages - 1;
       }
 
-      return paginator.currentPageIndex;
-
-      /* For demonstration, an if-else alternative
-			if (val.includes('first'))
-				return paginator.startingIndex;
-			else if (val.includes('prev'))
-				return paginator.currentPageIndex - 1;
-			else if (val.includes('delete'))
-				await paginator.message.delete();
-			else if (val.includes('next'))
-				return paginator.currentPageIndex + 1;
-			else if (val.includes('last'))
-				return paginator.numberOfPages - 1;
-			return paginator.currentPageIndex;
-			*/
+      if (newPageIdentifier < 0) {
+        newPageIdentifier = paginator.maxNumberOfPages + (newPageIdentifier % paginator.maxNumberOfPages);
+      } else if (newPageIdentifier >= paginator.maxNumberOfPages) {
+        newPageIdentifier %= paginator.maxNumberOfPages;
+      }
+      return newPageIdentifier;
     };
 
-    const buttonPaginator = new ButtonPaginator(interaction, pages, {
+    const buttonPaginator = new ButtonPaginator(interaction, {
+      initialPages: pages,
       buttons,
-      pageIndexResolver,
+      pageIdentifierResolver,
     })
       .on(PaginatorEvents.PAGINATION_READY, async paginator => {
         for (const button of paginator.messageActionRow.components) {

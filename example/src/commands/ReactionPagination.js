@@ -10,7 +10,7 @@ module.exports = {
     .setDescription('Replies with a reaction based pagination!'),
   async execute(interaction) {
     await interaction.deferReply();
-    const reactionPaginator = new ReactionPaginator(interaction, pages)
+    const reactionPaginator = new ReactionPaginator(interaction, { initialPages: pages })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
       .on(PaginatorEvents.PAGINATION_END, basicEndHandler);
     await reactionPaginator.send();

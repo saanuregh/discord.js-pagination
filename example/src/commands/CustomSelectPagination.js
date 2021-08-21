@@ -18,7 +18,8 @@ module.exports = {
         description: `This will take you to page #${i + 1}`,
       });
     }
-    const selectPaginator = new SelectPaginator(interaction, pages, {
+    const selectPaginator = new SelectPaginator(interaction, {
+      initialPages: pages,
       placeholder: "You're now on page #1",
       selectOptions: selectOptions,
     })

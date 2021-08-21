@@ -11,21 +11,31 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply();
     const emojiList = ['⏪', '❌', '⏩'];
-    const pageIndexResolver = async ({ reaction, paginator }) => {
+    const pageIdentifierResolver = async ({ reaction, paginator }) => {
+      let newPageIdentifier = paginator.currentPageIdentifier;
       switch (reaction.emoji.name) {
         case paginator.emojiList[0]:
-          return paginator.currentPageIndex + 1;
+          newPageIdentifier -= 1;
+          break;
         case paginator.emojiList[1]:
           await paginator.message.delete();
           break;
         case paginator.emojiList[2]:
-          return paginator.currentPageIndex - 1;
+          newPageIdentifier += 1;
+          break;
       }
-      return paginator.currentPageIndex;
+
+      if (newPageIdentifier < 0) {
+        newPageIdentifier = paginator.maxNumberOfPages + (newPageIdentifier % paginator.maxNumberOfPages);
+      } else if (newPageIdentifier >= paginator.maxNumberOfPages) {
+        newPageIdentifier %= paginator.maxNumberOfPages;
+      }
+      return newPageIdentifier;
     };
-    const reactionPaginator = new ReactionPaginator(interaction, pages, {
+    const reactionPaginator = new ReactionPaginator(interaction, {
+      initialPages: pages,
       emojiList,
-      pageIndexResolver,
+      pageIdentifierResolver,
     })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
       .on(PaginatorEvents.PAGINATION_END, basicEndHandler);
