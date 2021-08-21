@@ -5,8 +5,8 @@ const ActionRowPaginator = require('./ActionRowPaginator');
 const { ButtonPaginatorDefaults } = require('../util/Defaults');
 
 class ButtonPaginator extends ActionRowPaginator {
-  constructor(interaction, pages, options) {
-    super(interaction, pages, Util.mergeDefault(ButtonPaginatorDefaults, options));
+  constructor(interaction, options) {
+    super(interaction, Util.mergeDefault(ButtonPaginatorDefaults, options));
 
     if (typeof options.buttons === 'undefined' || options.buttons.length === 0) {
       throw new Error('buttons is undefined or empty, must be a list of MessageButtonOptions');
