@@ -9,13 +9,21 @@ class BasePaginator extends EventEmitter {
     super();
 
     if (typeof interaction === 'undefined') {
-      throw new Error('The received interaction is undefined.');
+      throw new Error('The received interaction is undefined');
     }
     if (typeof interaction.channel === 'undefined') {
-      throw new Error('The received interaction does not have a valid channel.');
+      throw new Error('The received interaction does not have a valid channel');
     }
     if (typeof options.messageSender !== 'function') {
       throw new Error('messageSender must be a function');
+    }
+    if (typeof options.pageEmbedResolver === 'undefined') {
+      if (typeof options.useCache === 'boolean' && !options.useCache) {
+        throw new Error('pageEmbedResolver must be provided if useCache is false');
+      }
+      if (typeof options.initialPages === 'undefined' || options.length === 0) {
+        throw new Error('initialPages must be provided if not using a pageEmbedResolver');
+      }
     }
 
     Object.defineProperty(this, 'client', { value: interaction.client });
@@ -33,8 +41,8 @@ class BasePaginator extends EventEmitter {
     this.shouldChangePage = options.shouldChangePage || null;
     this.footerResolver = options.footerResolver || null;
     this.startingPageIdentifier = options.startingPageIdentifier || null;
-    this.maxNumberOfPages = options.maxNumberOfPages || null;
     this.useCache = options.useCache || true;
+    this.maxNumberOfPages = options.maxNumberOfPages || null;
 
     if (options.initialPages && typeof options.mapPages === 'function' && options.useCache) {
       this._handleMapPages(options);
