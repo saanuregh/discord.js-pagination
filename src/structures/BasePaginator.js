@@ -83,20 +83,25 @@ class BasePaginator extends EventEmitter {
     this.removeAllListeners();
   }
 
-  async _resolveFooter() {
-    if (this.footerResolver) this.currentPage.setFooter(await this.footerResolver(this));
-  }
-
   async _resolvePageEmbed(changePageArgs) {
-    const { newPageIdentifier } = changePageArgs;
+    const { currentPageIdentifier, newPageIdentifier } = changePageArgs;
+    let newPage = null;
     if (this.useCache && this.pages.has(newPageIdentifier)) {
-      return this.pages.get(newPageIdentifier);
+      newPage = this.pages.get(newPageIdentifier);
+    } else {
+      newPage = await this.pageEmbedResolver(changePageArgs);
+      if (this.useCache) {
+        this.pages.set(newPageIdentifier, newPage);
+      }
     }
 
-    const newPage = await this.pageEmbedResolver(changePageArgs);
-    if (this.useCache) {
-      this.pages.set(newPageIdentifier, newPage);
+    if (typeof this.footerResolver === 'function' && newPage !== null && typeof newPage !== 'undefined') {
+      newPage.setFooter(await this.footerResolver(this));
     }
+
+    this.previousPageIdentifier = currentPageIdentifier;
+    this.currentPageIdentifier = newPageIdentifier;
+
     return newPage;
   }
 
@@ -119,9 +124,12 @@ class BasePaginator extends EventEmitter {
 
   async send() {
     if (this._isSent) return;
-    this.currentPageIdentifier = this.startingPageIdentifier;
+    this.currentPage = await this._resolvePageEmbed({
+      newPageIdentifier: this.startingPageIdentifier,
+      currentPageIdentifier: null,
+      paginator: this,
+    });
 
-    await this._resolveFooter();
     this.message = await this.messageSender(this);
     this.collector = this._createCollector();
 
@@ -157,9 +165,6 @@ class BasePaginator extends EventEmitter {
   async changePage(changePageArgs) {
     if (await this._shouldChangePage(changePageArgs)) {
       this.currentPage = await this._resolvePageEmbed(changePageArgs);
-      this.previousPageIdentifier = this.currentPagedentifier;
-      this.currentPageIdentifier = changePageArgs.newPageIdentifier;
-      await this._resolveFooter();
       this.emit(PaginatorEvents.BEFORE_PAGE_CHANGED, changePageArgs);
       await this.message.edit(this.currentPageMessageOptions);
       this.emit(PaginatorEvents.PAGE_CHANGED, changePageArgs);
