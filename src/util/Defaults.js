@@ -1,7 +1,7 @@
 'use strict';
 
 exports.BasePaginatorDefaults = {
-  startingIdentifier: 0,
+  startingPageIdentifier: 0,
   idle: 6e4,
   shouldChangePage: ({ newPageIdentifier, previousPageIdentifier, paginator }) =>
     !paginator.message.deleted && newPageIdentifier !== previousPageIdentifier,
@@ -10,9 +10,9 @@ exports.BasePaginatorDefaults = {
     return paginator.interaction.fetchReply();
   },
   mapPages: ({ initialPages, paginator }) => {
-    for (const i in initialPages) {
-      paginator.pages.set(i, initialPages[i]);
-    }
+    initialPages.forEach((item, index) => {
+      paginator.pages.set(index, item);
+    });
   },
 };
 
@@ -22,14 +22,22 @@ exports.ReactionPaginatorDefaults = {
   collectorFilter: ({ reaction, user, paginator }) =>
     user === paginator.user && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
   pageIdentifierResolver: ({ reaction, paginator }) => {
+    let newPageIdentifier = paginator.currentPageIdentifier;
     switch (reaction.emoji.name) {
       case paginator.emojiList[0]:
-        return paginator.currentPageIdentifier - 1;
+        newPageIdentifier -= 1;
+        break;
       case paginator.emojiList[1]:
-        return paginator.currentPageIdentifier + 1;
-      default:
-        return paginator.currentPageIdentifier;
+        newPageIdentifier += 1;
+        break;
     }
+    // The default identifier is a cyclic index.
+    if (newPageIdentifier < 0) {
+      newPageIdentifier = paginator.maxNumberOfPages + (newPageIdentifier % paginator.maxNumberOfPages);
+    } else if (newPageIdentifier >= paginator.maxNumberOfPages) {
+      newPageIdentifier %= paginator.maxNumberOfPages;
+    }
+    return newPageIdentifier;
   },
 };
 
@@ -51,9 +59,15 @@ exports.ButtonPaginatorDefaults = {
   ],
   pageIdentifierResolver: ({ interaction, paginator }) => {
     const val = interaction.customId.toLowerCase();
-    if (val.includes('prev')) return paginator.currentPageIdentifier - 1;
-    else if (val.includes('next')) return paginator.currentPageIdentifier + 1;
-    return paginator.currentPageIdentifier;
+    let newPageIdentifier = paginator.currentPageIdentifier;
+    if (val.includes('prev')) newPageIdentifier = paginator.currentPageIdentifier - 1;
+    else if (val.includes('next')) newPageIdentifier = paginator.currentPageIdentifier + 1;
+    if (newPageIdentifier < 0) {
+      newPageIdentifier = paginator.maxNumberOfPages + newPageIdentifier;
+    } else if (newPageIdentifier >= paginator.maxNumberOfPages) {
+      newPageIdentifier = (paginator.maxNumberOfPages % newPageIdentifier) - 1;
+    }
+    return newPageIdentifier;
   },
 };
 
