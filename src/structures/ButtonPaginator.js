@@ -4,7 +4,7 @@ const { Util } = require('discord.js');
 const ActionRowPaginator = require('./ActionRowPaginator');
 const { ButtonPaginatorDefaults } = require('../util/Defaults');
 
-class SelectPaginator extends ActionRowPaginator {
+class ButtonPaginator extends ActionRowPaginator {
   constructor(interaction, pages, options) {
     super(interaction, pages, Util.mergeDefault(ButtonPaginatorDefaults, options));
 
@@ -24,4 +24,4 @@ class SelectPaginator extends ActionRowPaginator {
   }
 }
 
-module.exports = SelectPaginator;
+module.exports = ButtonPaginator;
