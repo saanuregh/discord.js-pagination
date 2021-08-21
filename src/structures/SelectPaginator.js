@@ -21,14 +21,6 @@ class SelectPaginator extends ActionRowPaginator {
       }),
     );
 
-    for (const selectMenuOption of this.options.selectOptions) {
-      if (selectMenuOption.customId && !selectMenuOption.customId.startsWith(this.customIdPrefix)) {
-        selectMenuOption.customId = this._generateCustomId(selectMenuOption.customId);
-      } else {
-        selectMenuOption.customId = this._generateCustomId('select-option');
-      }
-    }
-
     this.selectMenu.addOptions(this.options.selectOptions);
   }
 
