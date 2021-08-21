@@ -8,6 +8,10 @@ class ReactionPaginator extends BasePaginator {
   constructor(interaction, pages, options) {
     super(interaction, pages, Util.mergeDefault(ReactionPaginatorDefaults, options));
 
+    if (typeof options.emojiList === 'undefined' || options.emojiList.length === 0) {
+      throw new Error('emojiList is undefined or empty, must be a list of EmojiResolvables');
+    }
+
     this.emojiList = this.options.emojiList;
   }
 
@@ -18,11 +22,6 @@ class ReactionPaginator extends BasePaginator {
   getCollectorArgs(args) {
     const [reaction, user] = args;
     return { reaction, user, paginator: this };
-  }
-
-  async _preSetup() {
-    await super._preSetup();
-    if (!this.emojiList) throw new Error('emojiList is empty or undefined');
   }
 
   async _postSetup() {

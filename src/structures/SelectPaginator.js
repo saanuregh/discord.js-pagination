@@ -7,6 +7,11 @@ const { SelectPaginatorDefaults } = require('../util/Defaults');
 class SelectPaginator extends ActionRowPaginator {
   constructor(interaction, pages, options) {
     super(interaction, pages, Util.mergeDefault(SelectPaginatorDefaults, options));
+
+    if (typeof options.selectOptions === 'undefined' || options.selectOptions.length === 0) {
+      throw new Error('selectOptions is undefined or empty, must be a list of MessageSelectOptions');
+    }
+
     this.messageActionRow.addComponents(
       new MessageSelectMenu({
         customId: this._generateCustomId('select-menu'),

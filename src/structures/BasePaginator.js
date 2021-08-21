@@ -7,8 +7,18 @@ class BasePaginator extends EventEmitter {
   constructor(interaction, pages, options) {
     super();
 
-    if (!interaction) throw new Error('The received prompt is undefined.');
-    if (!interaction.channel) throw new Error('The received prompt does not have a valid channel.');
+    if (typeof interaction === 'undefined') {
+      throw new Error('The received interaction is undefined.');
+    }
+    if (typeof interaction.channel === 'undefined') {
+      throw new Error('The received interaction does not have a valid channel.');
+    }
+    if (typeof pages === 'undefined' || pages.length === 0) {
+      throw new Error('pages is undefined or empty, must be a list of MessageEmbeds');
+    }
+    if (typeof options.messageSender !== 'function') {
+      throw new Error('messageSender must be a function');
+    }
 
     Object.defineProperty(this, 'client', { value: interaction.client });
     Object.defineProperty(this, 'user', { value: interaction.user });
@@ -53,11 +63,6 @@ class BasePaginator extends EventEmitter {
     if (this.footerResolver) this.currentPage.setFooter(await this.footerResolver(this));
   }
 
-  _preSetup() {
-    if (!this.pages) throw new Error("There don't seem to be any pages to send.");
-    if (!this.messageSender) throw new Error("There doesn't seem to be a valid messageSsender");
-  }
-
   _postSetup() {
     this.emit(PaginatorEvents.PAGINATION_READY, this);
   }
@@ -77,7 +82,6 @@ class BasePaginator extends EventEmitter {
 
   async send() {
     if (this._isSent) return;
-    await this._preSetup();
     this.currentPageIndex = this.startingIndex;
 
     await this._resolveFooter();
