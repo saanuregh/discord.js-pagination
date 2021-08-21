@@ -1,6 +1,6 @@
 {
   "name": "@psibean/discord.js-pagination",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "A simple utility to paginate discord embeds based on discord.js-pagination.",
   "main": "./src/index.js",
   "module": "./src/index.mjs",
@@ -16,8 +16,9 @@
   },
   "scripts": {
     "lint": "eslint src",
-    "lint:fix:example": "eslint example --fix",
+    "lint:example": "eslint example",
     "lint:fix": "eslint src --fix",
+    "lint:fix:example": "eslint example --fix",
     "prepublishOnly": "gen-esm-wrapper ./src/index.js ./src/index.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -1,3 +1,5 @@
+'use strict';
+
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { PaginatorEvents, ButtonPaginator } = require('../../../src');
 const { basicEndHandler, basicErrorHandler, pages } = require('../util/Constants');
@@ -37,6 +39,7 @@ module.exports = {
       },
     ];
 
+    // eslint-disable-next-line no-shadow
     const pageIndexResolver = async ({ interaction, paginator }) => {
       const val = interaction.customId.toLowerCase();
       switch (val) {
@@ -46,13 +49,14 @@ module.exports = {
           return paginator.currentPageIndex + 1;
         case `${paginator.customIdPrefix}-delete-${paginator.customIdSuffix}`:
           await paginator.message.delete();
+          break;
         case `${paginator.customIdPrefix}-previous-${paginator.customIdSuffix}`:
           return paginator.currentPageIndex - 1;
         case `${paginator.customIdPrefix}-last-${paginator.customIdSuffix}`:
           return paginator.numberOfPages - 1;
-        default:
-          return paginator.currentPageIndex;
       }
+
+      return paginator.currentPageIndex;
 
       /* For demonstration, an if-else alternative
 			if (val.includes('first'))

@@ -120,7 +120,15 @@ These properties are common to the `ButtonPaginator` and `SelectPaginator`.
 - **customIdPrefix** : The `customIdPrefix` provided in options. Used to prefix all `MessageComponent#customId`'s.
 - **customIdSuffix** : The `interaction#id`. Used to suffix all `MessageComponent#customId`'s.
 
-### 
+###
+
+## SelectPaginator Properties
+
+These properties are specific to the `SelectPaginator`.
+
+- **selectMenu** : The select menu on the paginator message action row.
+
+###
 
 # Paginator Options
 

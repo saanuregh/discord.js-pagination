@@ -8,8 +8,15 @@ class BasePaginator extends EventEmitter {
   constructor(interaction, options) {
     super();
 
-    if (!interaction) throw new Error('The received prompt is undefined.');
-    if (!interaction.channel) throw new Error('The received prompt does not have a valid channel.');
+    if (typeof interaction === 'undefined') {
+      throw new Error('The received interaction is undefined.');
+    }
+    if (typeof interaction.channel === 'undefined') {
+      throw new Error('The received interaction does not have a valid channel.');
+    }
+    if (typeof options.messageSender !== 'function') {
+      throw new Error('messageSender must be a function');
+    }
 
     Object.defineProperty(this, 'client', { value: interaction.client });
     Object.defineProperty(this, 'user', { value: interaction.user });
@@ -75,16 +82,6 @@ class BasePaginator extends EventEmitter {
     return newPage;
   }
 
-  _preSetup() {
-    if (!this.messageSender) throw new Error('messageSsender is invalid');
-    if (!this.useCache && !this.pageEmbedResolver) {
-      throw new Error('If not using cache a pageEmbedResolver must be provided');
-    }
-    if (this.useCache && !this.pageEmbedResolver && this.numberOfKnownPages === 0) {
-      throw new Error();
-    }
-  }
-
   _postSetup() {
     this.emit(PaginatorEvents.PAGINATION_READY, this);
   }
@@ -104,7 +101,6 @@ class BasePaginator extends EventEmitter {
 
   async send() {
     if (this._isSent) return;
-    await this._preSetup();
     this.currentPageIdentifier = this.startingPageIdentifier;
 
     await this._resolveFooter();

@@ -1,3 +1,5 @@
+'use strict';
+
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { PaginatorEvents, ReactionPaginator } = require('../../../src');
 const { basicErrorHandler, basicEndHandler, pages } = require('../util/Constants');
@@ -18,9 +20,8 @@ module.exports = {
           break;
         case paginator.emojiList[2]:
           return paginator.currentPageIndex - 1;
-        default:
-          return paginator.currentPageIndex;
       }
+      return paginator.currentPageIndex;
     };
     const reactionPaginator = new ReactionPaginator(interaction, pages, {
       emojiList,

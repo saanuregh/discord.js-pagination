@@ -1,10 +1,10 @@
 'use strict';
 
 exports.BasePaginatorDefaults = {
-  startingIndex: 0,
+  startingIdentifier: 0,
   idle: 6e4,
-  shouldChangePage: ({ newPageIndex, previousPageIdentifier, paginator }) =>
-    !paginator.message.deleted && newPageIndex !== previousPageIdentifier,
+  shouldChangePage: ({ newPageIdentifier, previousPageIdentifier, paginator }) =>
+    !paginator.message.deleted && newPageIdentifier !== previousPageIdentifier,
   messageSender: async paginator => {
     await paginator.interaction.editReply(paginator.currentPageMessageOptions);
     return paginator.interaction.fetchReply();
@@ -21,7 +21,7 @@ exports.ReactionPaginatorDefaults = {
   emojiList: ['⏪', '⏩'],
   collectorFilter: ({ reaction, user, paginator }) =>
     user === paginator.user && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
-  pageIndexResolver: ({ reaction, paginator }) => {
+  pageIdentifierResolver: ({ reaction, paginator }) => {
     switch (reaction.emoji.name) {
       case paginator.emojiList[0]:
         return paginator.currentPageIdentifier - 1;
