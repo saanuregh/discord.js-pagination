@@ -159,10 +159,6 @@ class BasePaginator extends EventEmitter {
     else return this.maxNumberOfPages;
   }
 
-  get maxNumberOfPages() {
-    return this.maxNumberOfPages;
-  }
-
   get currentPageMessageOptions() {
     return { embeds: [this.currentPage] };
   }
