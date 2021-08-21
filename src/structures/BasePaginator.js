@@ -43,7 +43,12 @@ class BasePaginator extends EventEmitter {
     this.startingPageIdentifier =
       typeof options.startingPageIdentifier === 'number' ? options.startingPageIdentifier : null;
     this.useCache = options.useCache || true;
-    this.maxNumberOfPages = options.maxNumberOfPages || null;
+    // If using cache and no embed resolver, initialPages can infer max number of pages.
+    if (this.useCache && typeof this.pageEmbedResolver !== 'function') {
+      this.maxNumberOfPages = this.initialPages.length;
+    } else {
+      this.maxNumberOfPages = options.maxNumberOfPages;
+    }
 
     if (options.initialPages && typeof options.mapPages === 'function' && options.useCache) {
       this._handleMapPages(options);
