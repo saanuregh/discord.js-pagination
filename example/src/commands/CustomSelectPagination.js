@@ -1,3 +1,5 @@
+'use strict';
+
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { PaginatorEvents, SelectPaginator } = require('../../../src');
 const { pages, basicEndHandler, basicErrorHandler } = require('../util/Constants');
