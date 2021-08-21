@@ -50,7 +50,7 @@ class BasePaginator extends EventEmitter {
       this.maxNumberOfPages = options.maxNumberOfPages;
     }
 
-    if (options.initialPages && typeof options.mapPages === 'function' && options.useCache) {
+    if (options.initialPages && typeof options.mapPages === 'function' && this.useCache) {
       this._handleMapPages(options);
     }
   }
