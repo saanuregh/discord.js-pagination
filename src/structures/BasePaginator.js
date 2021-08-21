@@ -21,7 +21,7 @@ class BasePaginator extends EventEmitter {
       if (typeof options.useCache === 'boolean' && !options.useCache) {
         throw new Error('pageEmbedResolver must be provided if useCache is false');
       }
-      if (typeof options.initialPages === 'undefined' || options.length === 0) {
+      if (typeof options.initialPages === 'undefined' || options.initialPages.length === 0) {
         throw new Error('initialPages must be provided if not using a pageEmbedResolver');
       }
     }
