@@ -24,6 +24,14 @@ class SelectPaginator extends ActionRowPaginator {
     this.selectMenu.addOptions(this.options.selectOptions);
   }
 
+  _handleMapPages(options) {
+    options.mapPages({
+      selectOptions: options.selectOptions,
+      initialPages: options.initialPages,
+      paginator: this,
+    });
+  }
+
   get selectMenu() {
     return this.messageActionRow.components[0];
   }

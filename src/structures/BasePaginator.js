@@ -36,9 +36,13 @@ class BasePaginator extends EventEmitter {
     this.maxNumberOfPages = options.maxNumberOfPages || null;
     this.useCache = options.useCache || true;
 
-    if (options.initialPages && options.mapPages && options.useCache) {
-      options.mapPages(options.initialPages, this);
+    if (options.initialPages && typeof options.mapPages === 'function' && options.useCache) {
+      this._handleMapPages(options);
     }
+  }
+
+  _handleMapPages(options) {
+    options.mapPages({ initialPages: options.initialPages, paginator: this });
   }
 
   _createCollector() {

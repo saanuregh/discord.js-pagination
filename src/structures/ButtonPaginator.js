@@ -22,6 +22,14 @@ class ButtonPaginator extends ActionRowPaginator {
 
     this.messageActionRow.addComponents(this.options.buttons);
   }
+
+  _handleMapPages(options) {
+    options.mapPages({
+      buttons: options.buttons,
+      initialPages: options.initialPages,
+      paginator: this,
+    });
+  }
 }
 
 module.exports = ButtonPaginator;
