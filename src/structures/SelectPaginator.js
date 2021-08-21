@@ -5,8 +5,8 @@ const ActionRowPaginator = require('./ActionRowPaginator');
 const { SelectPaginatorDefaults } = require('../util/Defaults');
 
 class SelectPaginator extends ActionRowPaginator {
-  constructor(interaction, pages, options) {
-    super(interaction, pages, Util.mergeDefault(SelectPaginatorDefaults, options));
+  constructor(interaction, options) {
+    super(interaction, Util.mergeDefault(SelectPaginatorDefaults, options));
     this.messageActionRow.addComponents(
       new MessageSelectMenu({
         customId: this._generateCustomId('select-menu'),
@@ -23,11 +23,6 @@ class SelectPaginator extends ActionRowPaginator {
         selectMenuOption.customId = this._generateCustomId('select-option');
       }
     }
-
-    this.pagesMap =
-      typeof this.options.pagesMap === 'function'
-        ? this.options.pagesMap({ selectOptions: this.options.selectOptions, paginator: this })
-        : this.options.pagesMap;
 
     this.selectMenu.addOptions(this.options.selectOptions);
   }

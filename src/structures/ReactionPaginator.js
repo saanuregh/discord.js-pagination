@@ -5,8 +5,8 @@ const BasePaginator = require('./BasePaginator');
 const { ReactionPaginatorDefaults } = require('../util/Defaults');
 
 class ReactionPaginator extends BasePaginator {
-  constructor(interaction, pages, options) {
-    super(interaction, pages, Util.mergeDefault(ReactionPaginatorDefaults, options));
+  constructor(interaction, options) {
+    super(interaction, Util.mergeDefault(ReactionPaginatorDefaults, options));
 
     this.emojiList = this.options.emojiList;
   }
@@ -26,6 +26,7 @@ class ReactionPaginator extends BasePaginator {
   }
 
   async _postSetup() {
+    // eslint-disable-next-line no-await-in-loop
     for (const emoji of this.emojiList) await this.message.react(emoji);
     super._postSetup();
   }

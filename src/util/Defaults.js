@@ -3,16 +3,15 @@
 exports.BasePaginatorDefaults = {
   startingIndex: 0,
   idle: 6e4,
-  shouldChangePage: ({ newPageIndex, previousPageIndex, paginator }) =>
-    !paginator.message.deleted && newPageIndex !== previousPageIndex,
-  footerResolver: paginator => `Page ${paginator.currentPageIndex + 1} / ${paginator.numberOfPages}`,
+  shouldChangePage: ({ newPageIndex, previousPageIdentifier, paginator }) =>
+    !paginator.message.deleted && newPageIndex !== previousPageIdentifier,
   messageSender: async paginator => {
     await paginator.interaction.editReply(paginator.currentPageMessageOptions);
     return paginator.interaction.fetchReply();
   },
-  mapPages: ({ pagesMap, pagesCache }) => {
-    for (const i in pagesMap) {
-      pagesCache.set(i, pagesMap[i]);
+  mapPages: ({ initialPages, paginator }) => {
+    for (const i in initialPages) {
+      paginator.pages.set(i, initialPages[i]);
     }
   },
 };
@@ -25,11 +24,11 @@ exports.ReactionPaginatorDefaults = {
   pageIndexResolver: ({ reaction, paginator }) => {
     switch (reaction.emoji.name) {
       case paginator.emojiList[0]:
-        return paginator.currentPageIndex - 1;
+        return paginator.currentPageIdentifier - 1;
       case paginator.emojiList[1]:
-        return paginator.currentPageIndex + 1;
+        return paginator.currentPageIdentifier + 1;
       default:
-        return paginator.currentPageIndex;
+        return paginator.currentPageIdentifier;
     }
   },
 };
@@ -50,22 +49,22 @@ exports.ButtonPaginatorDefaults = {
       label: 'Next',
     },
   ],
-  pageIndexResolver: ({ interaction, paginator }) => {
+  pageIdentifierResolver: ({ interaction, paginator }) => {
     const val = interaction.customId.toLowerCase();
-    if (val.includes('prev')) return paginator.currentPageIndex - 1;
-    else if (val.includes('next')) return paginator.currentPageIndex + 1;
-    return paginator.currentPageIndex;
+    if (val.includes('prev')) return paginator.currentPageIdentifier - 1;
+    else if (val.includes('next')) return paginator.currentPageIdentifier + 1;
+    return paginator.currentPageIdentifier;
   },
 };
 
 exports.SelectPaginatorDefaults = {
   ...exports.ActionRowPaginatorDefaults,
-  mapPages: ({ selectOptions, pages, pagesCache }) => {
-    for (const i in pages) {
-      pagesCache.set(selectOptions[i].value, pages[i]);
+  mapPages: ({ selectOptions, initialPages, paginator }) => {
+    for (const i in initialPages) {
+      paginator.pages.set(selectOptions[i].value, initialPages[i]);
     }
   },
-  pageIndexResolver: ({ interaction }) => {
+  pageIdentifierResolver: ({ interaction }) => {
     const [selectedValue] = interaction.values;
     return selectedValue;
   },
