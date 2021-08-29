@@ -106,11 +106,12 @@ These properties are common to all paginators.
 - **interaction** : The interaction that initiated the instantiation of the paginator.
 - **user** : The user who sent the interaction that instantiated the paginator.
 - **channel** : The channel where the interaction came from, this is also where the paginator message will be sent.
-- **pages** : The pages provided in the paginator constructor.
-- **startingIndex** : The starting index provided in the paginator options.
+- **pages** : The cache of MessageOptions mapped by their `identifier`.
+  - If pages are provided in the options of the constructor, this will be all of the pages provided mapped by their index.
+- **startingIdentifier** : The initial identifier provided in the paginator options - should resolve to the first page.
 - **numberOfPages** : The number of pages.
-- **previousPageIndex** : The index of the previous page, -1 indicates no page change.
-- **currentPageIndex** : The index of the current page.
+- **previousPageIdentifier** : The identifier of the previous page, `null` indicates no page change.
+- **currentPageIdentifier** : The identifier of the current page.
 - **options** : The options provided to the paginator after merging defaults.
 
 ## ActionRowPaginator Properties
@@ -148,7 +149,7 @@ The function used to send the intial page, it returns the message.
 Defaults to:
 ```js
 	messageSender: async (paginator) => {
-		await paginator.interaction.editReply(paginator.currentPageMessageOptions);
+		await paginator.interaction.editReply(paginator.currentPage);
 		return paginator.interaction.fetchReply();
 	}
 ```
@@ -191,11 +192,11 @@ For the ReactionPaginator, defaults to:
 	({ reaction, paginator }) => {
 		switch (reaction.emoji.name) {
 			case paginator.emojiList[0]:
-				return paginator.currentPageIndex - 1;
+				return paginator.currentPageIdentifier - 1;
 			case paginator.emojiList[1]:
-				return paginator.currentPageIndex + 1;
+				return paginator.currentPageIdentifier + 1;
 			default:
-				return paginator.currentPageIndex;
+				return paginator.currentPageIdentifier;
 		}
 ```
 
@@ -205,10 +206,10 @@ For the ButtonPaginator, defaults to:
 	({ interaction, paginator }) => {
 		const val = interaction.customId.toLowerCase();
 		if (val.includes('prev'))
-			return paginator.currentPageIndex - 1;
+			return paginator.currentPageIdentifier - 1;
 		else if (val.includes('next'))
-			return paginator.currentPageIndex + 1;
-		return paginator.currentPageIndex;
+			return paginator.currentPageIdentifier + 1;
+		return paginator.currentPageIdentifier;
 	}
 ```
 
@@ -225,17 +226,17 @@ For the SelectPaginator, defaults to:
 
 This is the function used to determine whether or not a page change should occur during a collect event. If not provided, a page change will always occur during a collect event.
 
-({ ...*, newPageIndex, currentPageIndex, paginator }): Promise&lt;boolean&gt; | boolean
+({ ...*, newPageIdentifier, currentPageIdentifier, paginator }): Promise&lt;boolean&gt; | boolean
 - **...\*** : Includes any args provided by the collect listener.
-- **newPageIndex** : This is the index of the page being changed to.
-- **currentPageIndex** : This is the index of the current page (before being changed).
+- **newPageIdentifier** : This is the index of the page being changed to.
+- **currentPageIdentifier** : This is the index of the current page (before being changed).
 - **paginator** : This is a reference to the paginator instance.
 
 Defaults to:
 
 ```js
-	({ newPageIndex, previousPageIndex, paginator }) =>
-		!paginator.message.deleted && newPageIndex !== previousPageIndex,
+	({ newPageIdentifier, previousPageIdentifier, paginator }) =>
+		!paginator.message.deleted && newPageIdentifier !== previousPageIdentifier,
 ```
 
 ### footerResolver
@@ -249,10 +250,10 @@ Defaults to:
 
 ```js
 	(paginator) =>
-		`Page ${paginator.currentPageIndex + 1} / ${paginator.numberOfPages}`
+		`Page ${paginator.currentPageIdentifier + 1} / ${paginator.numberOfPages}`
 ```
 
-### startingIndex
+### startingIdentifier
 
 This is the index of the page to start at, defaults to 0 if not provided or invalid.
 
@@ -347,10 +348,10 @@ All paginators have the following events (by EventName):
 
 This event is raised in the paginator collectors collect event before the message is edited with a new page.
 
-Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
+Parameters: ({ ...*, newPageIdentifier, currentPageIdentifier, paginator })
 - **...\*** : Includes any args provided by the collect listener.
-- **newPageIndex** : This is the index of the page being changed to.
-- **currentPageIndex** : This is the index of the current page (before being changed).
+- **newPageIdentifier** : This is the index of the page being changed to.
+- **currentPageIdentifier** : This is the index of the current page (before being changed).
 - **paginator** : This is a reference to the paginator instance.
 
 ### COLLECT_END
@@ -389,13 +390,13 @@ Parameters: ({ error, paginator })
 
 This event is raised in the paginator collectors collect event after the message is edited with a new page
 
-Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
+Parameters: ({ ...*, newPageIdentifier, currentPageIdentifier, paginator })
 - ...* : Includes any args provided by the collect listener.
-- **newPageIndex** : This is the index of the page being changed to.
-- **currentPageIndex** : This is the index of the current page (before being changed).
+- **newPageIdentifier** : This is the index of the page being changed to.
+- **currentPageIdentifier** : This is the index of the current page (before being changed).
 - **paginator** : This is a reference to the paginator instance.
 
-**It should be noted:** `paginator#currentPageIndex`, `paginator#previousPageIndex` and `paginator#currentPage` will now reflect values based on the `newPageIndex`, which is not the case for BEFORE_PAGE_CHANGED.
+**It should be noted:** `paginator#currentPageIdentifier`, `paginator#previousPageIdentifier` and `paginator#currentPage` will now reflect values based on the `newPageIdentifier`, which is not the case for BEFORE_PAGE_CHANGED.
 
 ### PAGE_UNCHANGED
 
@@ -403,10 +404,10 @@ Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
 
 This event is raised in the paginator collectors collect event when `paginator#shouldChangePage` has returned false. For example if the new page index matches the current index, a collect event occurred but did not cause a page change.
 
-Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
+Parameters: ({ ...*, newPageIdentifier, currentPageIdentifier, paginator })
 - ...* : Includes any args provided by the collect listener.
-- **newPageIndex** : This is the index of the page being changed to.
-- **currentPageIndex** : This is the index of the current page (before being changed).
+- **newPageIdentifier** : This is the index of the page being changed to.
+- **currentPageIdentifier** : This is the index of the current page (before being changed).
 - **paginator** : This is a reference to the paginator instance.
 
 ### PAGINATION_END
