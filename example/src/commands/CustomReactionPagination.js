@@ -9,7 +9,6 @@ module.exports = {
     .setName('custom-react-pagination')
     .setDescription('Replies with a custom reaction based pagination!'),
   async execute(interaction) {
-    await interaction.deferReply();
     const emojiList = ['⏪', '❌', '⏩'];
     const pageIdentifierResolver = async ({ reaction, paginator }) => {
       let newPageIdentifier = paginator.currentPageIdentifier;
@@ -33,7 +32,7 @@ module.exports = {
       return newPageIdentifier;
     };
     const reactionPaginator = new ReactionPaginator(interaction, {
-      initialPages: pages,
+      pages,
       emojiList,
       pageIdentifierResolver,
     })

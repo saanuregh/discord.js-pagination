@@ -9,7 +9,6 @@ module.exports = {
     .setName('select-pagination')
     .setDescription('Replies with a select menu based pagination!'),
   async execute(interaction) {
-    await interaction.deferReply();
     const selectOptions = [];
     for (let i = 0; i < 10; i++) {
       selectOptions.push({
@@ -19,7 +18,7 @@ module.exports = {
       });
     }
     const selectPaginator = new SelectPaginator(interaction, {
-      initialPages: pages,
+      pages,
       selectOptions: selectOptions,
     })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)

@@ -6,6 +6,7 @@ const myPages = [];
 for (let i = 0; i < 10; i++) {
   const pageEmbed = new MessageEmbed();
   pageEmbed.setTitle(`This embed is index ${i}!`).setDescription(`That means it is page #${i + 1}`);
+  pageEmbed.setFooter(`Page ${i + 1} / 10`);
   myPages.push(pageEmbed);
 }
 

@@ -9,8 +9,6 @@ module.exports = {
     .setName('custom-button-pagination')
     .setDescription('Replies with a button based pagination!'),
   async execute(interaction) {
-    await interaction.deferReply();
-
     const buttons = [
       {
         label: 'First',
@@ -40,22 +38,23 @@ module.exports = {
     ];
 
     // eslint-disable-next-line no-shadow
+    // eslint-disable-next-line no-shadow
     const pageIdentifierResolver = async ({ interaction, paginator }) => {
-      const val = interaction.customId.toLowerCase();
+      const val = interaction.component.label;
       let newPageIdentifier = paginator.currentPageIdentifier;
       switch (val) {
-        case `${paginator.customIdPrefix}-first-${paginator.customIdSuffix}`:
+        case 'first':
           return paginator.startingPageIdentifier;
-        case `${paginator.customIdPrefix}-next-${paginator.customIdSuffix}`:
+        case 'next':
           newPageIdentifier = paginator.currentPageIdentifier + 1;
           break;
-        case `${paginator.customIdPrefix}-delete-${paginator.customIdSuffix}`:
+        case 'delete':
           await paginator.message.delete();
           break;
-        case `${paginator.customIdPrefix}-previous-${paginator.customIdSuffix}`:
+        case 'previous':
           newPageIdentifier = paginator.currentPageIdentifier - 1;
           break;
-        case `${paginator.customIdPrefix}-last-${paginator.customIdSuffix}`:
+        case 'last':
           return paginator.maxNumberOfPages - 1;
       }
 
@@ -68,15 +67,17 @@ module.exports = {
     };
 
     const buttonPaginator = new ButtonPaginator(interaction, {
-      initialPages: pages,
+      pages,
       buttons,
       pageIdentifierResolver,
     })
       .on(PaginatorEvents.PAGINATION_READY, async paginator => {
-        for (const button of paginator.messageActionRow.components) {
-          button.disabled = false;
+        for (const actionRow of paginator.messageActionRows) {
+          for (const button of actionRow.components) {
+            button.disabled = false;
+          }
         }
-        await paginator.message.edit(paginator.currentPageMessageOptions);
+        await paginator.message.edit(paginator.currentPage);
       })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
       .on(PaginatorEvents.PAGINATION_END, basicEndHandler);
