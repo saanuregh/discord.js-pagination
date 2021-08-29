@@ -1,23 +1,20 @@
 'use strict';
 
+const { Util } = require('discord.js');
+
 exports.BasePaginatorDefaults = {
   startingPageIdentifier: 0,
   idle: 6e4,
+  useCache: true,
   shouldChangePage: ({ newPageIdentifier, previousPageIdentifier, paginator }) =>
     !paginator.message.deleted && newPageIdentifier !== previousPageIdentifier,
   messageSender: async paginator => {
-    await paginator.interaction.editReply(paginator.currentPageMessageOptions);
+    await paginator.interaction.editReply(paginator.currentPage);
     return paginator.interaction.fetchReply();
-  },
-  mapPages: ({ initialPages, paginator }) => {
-    initialPages.forEach((item, index) => {
-      paginator.pages.set(index, item);
-    });
   },
 };
 
-exports.ReactionPaginatorDefaults = {
-  ...exports.BasePaginatorDefaults,
+exports.ReactionPaginatorDefaults = Util.mergeDefault(exports.BasePaginatorDefaults, {
   emojiList: ['⏪', '⏩'],
   collectorFilter: ({ reaction, user, paginator }) =>
     user === paginator.user && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
@@ -39,16 +36,20 @@ exports.ReactionPaginatorDefaults = {
     }
     return newPageIdentifier;
   },
-};
+});
 
-exports.ActionRowPaginatorDefaults = {
-  ...exports.BasePaginatorDefaults,
+exports.ActionRowPaginatoDrefaults = Util.mergeDefault(exports.BasePaginatorDefaults, {
   customIdPrefix: 'paginator',
+  messageActionRows: [
+    {
+      type: 'ACTION_ROW',
+      components: [],
+    },
+  ],
   collectorFilter: ({ interaction, paginator }) => interaction.user === paginator.user && !interaction.user.bot,
-};
+});
 
 exports.ButtonPaginatorDefaults = {
-  ...exports.ActionRowPaginatorDefaults,
   buttons: [
     {
       label: 'Previous',
@@ -62,24 +63,28 @@ exports.ButtonPaginatorDefaults = {
     let newPageIdentifier = paginator.currentPageIdentifier;
     if (val.includes('prev')) newPageIdentifier = paginator.currentPageIdentifier - 1;
     else if (val.includes('next')) newPageIdentifier = paginator.currentPageIdentifier + 1;
+    // The default identifier is a cyclic index.
     if (newPageIdentifier < 0) {
-      newPageIdentifier = paginator.maxNumberOfPages + newPageIdentifier;
+      newPageIdentifier = paginator.maxNumberOfPages + (newPageIdentifier % paginator.maxNumberOfPages);
     } else if (newPageIdentifier >= paginator.maxNumberOfPages) {
-      newPageIdentifier = (paginator.maxNumberOfPages % newPageIdentifier) - 1;
+      newPageIdentifier %= paginator.maxNumberOfPages;
     }
     return newPageIdentifier;
   },
 };
 
 exports.SelectPaginatorDefaults = {
-  ...exports.ActionRowPaginatorDefaults,
-  mapPages: ({ selectOptions, initialPages, paginator }) => {
-    for (const i in initialPages) {
-      paginator.pages.set(selectOptions[i].value, initialPages[i]);
-    }
-  },
+  messageActionRows: [
+    {
+      components: [
+        {
+          type: 'SELECT_MENU',
+        },
+      ],
+    },
+  ],
   pageIdentifierResolver: ({ interaction }) => {
     const [selectedValue] = interaction.values;
-    return selectedValue;
+    return parseInt(selectedValue);
   },
 };

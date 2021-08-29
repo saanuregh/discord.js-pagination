@@ -7,28 +7,30 @@ const { ButtonPaginatorDefaults } = require('../util/Defaults');
 class ButtonPaginator extends ActionRowPaginator {
   constructor(interaction, options) {
     super(interaction, Util.mergeDefault(ButtonPaginatorDefaults, options));
+    // Buttons may also be set via the messageActionRows prop.
+    if (this.options.buttons) {
+      const buttonRows = [[]];
+      for (const button of this.options.buttons) {
+        button.type = 'BUTTON';
+        button.customId = button.customId
+          ? this._generateCustomId(button.customId)
+          : this._generateCustomId(button.label);
 
-    if (typeof options.buttons === 'undefined' || options.buttons.length === 0) {
-      throw new Error('buttons is undefined or empty, must be a list of MessageButtonOptions');
+        if (!button.style) button.style = 'PRIMARY';
+        if (button.row) {
+          if (button.row > 0 && button.row < buttonRows.length) {
+            buttonRows[button.row].push(button);
+          } else {
+            buttonRows[button.row] = [button];
+          }
+        } else {
+          buttonRows[0].push(button);
+        }
+      }
+      buttonRows.forEach((row, index) => {
+        this.messageActionRows[index].addComponents(row);
+      });
     }
-
-    for (const button of this.options.buttons) {
-      button.type = 'BUTTON';
-      if (button.customId) button.customId = this._generateCustomId(button.customId);
-      else button.customId = this._generateCustomId(button.label);
-
-      if (!button.style) button.style = 'PRIMARY';
-    }
-
-    this.messageActionRow.addComponents(this.options.buttons);
-  }
-
-  _handleMapPages(options) {
-    options.mapPages({
-      buttons: options.buttons,
-      initialPages: options.initialPages,
-      paginator: this,
-    });
   }
 }
 

@@ -17,12 +17,12 @@ class BasePaginator extends EventEmitter {
     if (typeof options.messageSender !== 'function') {
       throw new Error('messageSender must be a function');
     }
-    if (typeof options.pageEmbedResolver === 'undefined') {
+    if (typeof options.pageMessageOptionsResolver === 'undefined') {
       if (typeof options.useCache === 'boolean' && !options.useCache) {
-        throw new Error('pageEmbedResolver must be provided if useCache is false');
+        throw new Error('pageMessageOptionsResolver must be provided if useCache is false');
       }
-      if (typeof options.initialPages === 'undefined' || options.initialPages.length === 0) {
-        throw new Error('initialPages must be provided if not using a pageEmbedResolver');
+      if (typeof options.pages === 'undefined' || options.pages.length === 0) {
+        throw new Error('pages must be provided if not using a pageMessageOptionsResolver');
       }
     }
 
@@ -33,30 +33,27 @@ class BasePaginator extends EventEmitter {
     Object.defineProperty(this, 'pages', { value: new Collection() });
 
     this.options = options;
-    this.initialPages = options.initialPages;
     this.messageSender = options.messageSender;
     this.collectorFilter = options.collectorFilter;
     this.pageIdentifierResolver = options.pageIdentifierResolver;
-    this.pageEmbedResolver = options.pageEmbedResolver;
+    this.pageMessageOptionsResolver = options.pageMessageOptionsResolver;
     this.shouldChangePage = options.shouldChangePage || null;
     this.footerResolver = options.footerResolver || null;
-    this.startingPageIdentifier =
-      typeof options.startingPageIdentifier === 'number' ? options.startingPageIdentifier : null;
-    this.useCache = options.useCache || true;
-    // If using cache and no embed resolver, initialPages can infer max number of pages.
-    if (this.useCache && typeof this.pageEmbedResolver !== 'function') {
-      this.maxNumberOfPages = this.initialPages.length;
+    this.startingPageIdentifier = options.startingPageIdentifier;
+    this.useCache = typeof options.useCache === 'boolean' ? options.useCache : true;
+    // If using cache and no embed resolver, pages can infer max number of pages.
+    if (this.useCache && typeof this.pageMessageOptionsResolver !== 'function') {
+      this.maxNumberOfPages = this.options.pages.length;
     } else {
       this.maxNumberOfPages = options.maxNumberOfPages;
     }
 
-    if (options.initialPages && typeof options.mapPages === 'function' && this.useCache) {
-      this._handleMapPages(options);
+    if (this.useCache && options.pages && options.pages.length > 0) {
+      const { pages } = options;
+      pages.forEach((page, pageIndex) => {
+        this.pages.set(pageIndex, { embeds: [page] });
+      });
     }
-  }
-
-  _handleMapPages(options) {
-    options.mapPages({ initialPages: options.initialPages, paginator: this });
   }
 
   _createCollector() {
@@ -83,20 +80,20 @@ class BasePaginator extends EventEmitter {
     this.removeAllListeners();
   }
 
-  async _resolvePageEmbed(changePageArgs) {
+  async _resolvePageMessageOptions(changePageArgs) {
     const { currentPageIdentifier, newPageIdentifier } = changePageArgs;
     let newPage = null;
     if (this.useCache && this.pages.has(newPageIdentifier)) {
       newPage = this.pages.get(newPageIdentifier);
     } else {
-      newPage = await this.pageEmbedResolver(changePageArgs);
+      newPage = await this.pageMessageOptionsResolver(changePageArgs);
       if (this.useCache) {
         this.pages.set(newPageIdentifier, newPage);
       }
     }
 
     if (typeof this.footerResolver === 'function' && newPage !== null && typeof newPage !== 'undefined') {
-      newPage.setFooter(await this.footerResolver(this));
+      newPage.embeds[0].setFooter(await this.footerResolver(this));
     }
 
     this.previousPageIdentifier = currentPageIdentifier;
@@ -124,7 +121,7 @@ class BasePaginator extends EventEmitter {
 
   async send() {
     if (this._isSent) return;
-    this.currentPage = await this._resolvePageEmbed({
+    this.currentPage = await this._resolvePageMessageOptions({
       newPageIdentifier: this.startingPageIdentifier,
       currentPageIdentifier: null,
       paginator: this,
@@ -164,9 +161,9 @@ class BasePaginator extends EventEmitter {
 
   async changePage(changePageArgs) {
     if (await this._shouldChangePage(changePageArgs)) {
-      this.currentPage = await this._resolvePageEmbed(changePageArgs);
+      this.currentPage = await this._resolvePageMessageOptions(changePageArgs);
       this.emit(PaginatorEvents.BEFORE_PAGE_CHANGED, changePageArgs);
-      await this.message.edit(this.currentPageMessageOptions);
+      await this.message.edit(this.currentPage);
       this.emit(PaginatorEvents.PAGE_CHANGED, changePageArgs);
     } else {
       this.emit(PaginatorEvents.PAGE_UNCHANGED);
@@ -174,7 +171,7 @@ class BasePaginator extends EventEmitter {
   }
 
   get notSent() {
-    return !!this._isSent;
+    return typeof this._isSent !== 'boolean' || !this._isSent;
   }
 
   get numberOfKnownPages() {
@@ -182,8 +179,17 @@ class BasePaginator extends EventEmitter {
     else return this.maxNumberOfPages;
   }
 
-  get currentPageMessageOptions() {
-    return { embeds: [this.currentPage] };
+  get previousPageIdentifier() {
+    return this._previousPageIdentifier || null;
+  }
+
+  set previousPageIdentifier(previousPageIdentifier) {
+    this._previousPageIdentifier = previousPageIdentifier;
+  }
+
+  setPage(pageIdentifier, pageMessageOptions) {
+    this.pages.set(pageIdentifier, pageMessageOptions);
+    return this;
   }
 
   setMessageSender(messageSender) {
@@ -201,8 +207,8 @@ class BasePaginator extends EventEmitter {
     return this;
   }
 
-  setPageEmbedResolver(pageEmbedResolver) {
-    this.pageEmbedResolver = pageEmbedResolver;
+  setPageMessageOptionsResolver(pageMessageOptionsResolver) {
+    this.pageMessageOptionsResolver = pageMessageOptionsResolver;
     return this;
   }
 

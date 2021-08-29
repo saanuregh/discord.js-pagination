@@ -1,39 +1,30 @@
 'use strict';
 
-const { MessageSelectMenu, Util } = require('discord.js');
+const { Util } = require('discord.js');
 const ActionRowPaginator = require('./ActionRowPaginator');
 const { SelectPaginatorDefaults } = require('../util/Defaults');
 
 class SelectPaginator extends ActionRowPaginator {
   constructor(interaction, options) {
     super(interaction, Util.mergeDefault(SelectPaginatorDefaults, options));
-
-    if (typeof options.selectOptions === 'undefined' || options.selectOptions.length === 0) {
-      throw new Error('selectOptions is undefined or empty, must be a list of MessageSelectOptions');
+    if (this.options.selectOptions) {
+      const actionRows = [[]];
+      this.options.selectOptions.forEach(selectOption => {
+        const rowIndex = selectOption.row ? selectOption.row : 0;
+        if (rowIndex >= 0 && rowIndex < actionRows.length) {
+          actionRows[rowIndex].push(selectOption);
+        } else {
+          actionRows[0].push(selectOption);
+        }
+      });
+      actionRows.forEach((selectOptions, index) => {
+        this.messageActionRows[index].components[0].addOptions(selectOptions);
+      });
     }
-
-    this.messageActionRow.addComponents(
-      new MessageSelectMenu({
-        customId: this._generateCustomId('select-menu'),
-        placeholder: options.placeholder,
-        minValues: 1,
-        maxValues: 1,
-      }),
-    );
-
-    this.selectMenu.addOptions(this.options.selectOptions);
   }
 
-  _handleMapPages(options) {
-    options.mapPages({
-      selectOptions: options.selectOptions,
-      initialPages: options.initialPages,
-      paginator: this,
-    });
-  }
-
-  get selectMenu() {
-    return this.messageActionRow.components[0];
+  getSelectMenu(row = 0) {
+    return this.getMessageActionRow(row).components[0];
   }
 }
 

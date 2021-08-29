@@ -15,14 +15,6 @@ class ReactionPaginator extends BasePaginator {
     this.emojiList = this.options.emojiList;
   }
 
-  _handleMapPages(options) {
-    options.mapPages({
-      emojiList: this.emojiList,
-      initialPages: options.initialPages,
-      paginator: this,
-    });
-  }
-
   _createCollector() {
     return this.message.createReactionCollector(this.collectorFilterOptions);
   }
