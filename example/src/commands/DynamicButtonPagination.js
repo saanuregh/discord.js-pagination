@@ -40,7 +40,7 @@ module.exports = {
 
     // eslint-disable-next-line no-shadow
     const pageIdentifierResolver = async ({ interaction, paginator }) => {
-      const val = interaction.component.label;
+      const val = interaction.component.label.toLowerCase();
       let newPageIdentifier = paginator.currentPageIdentifier;
       switch (val) {
         case 'first':
@@ -79,6 +79,7 @@ module.exports = {
       buttons,
       pageIdentifierResolver,
       pageMessageOptionsResolver,
+      maxNumberOfPages: 10,
     })
       .on(PaginatorEvents.PAGINATION_READY, async paginator => {
         for (const button of paginator.getMessageActionRow(0).components) {

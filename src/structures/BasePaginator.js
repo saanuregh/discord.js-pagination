@@ -34,7 +34,7 @@ class BasePaginator extends EventEmitter {
 
     this.options = options;
     this.messageSender = options.messageSender;
-    this.collectorFilter = options.collectorFilter;
+    this.collectorOptions = options.collectorOptions;
     this.pageIdentifierResolver = options.pageIdentifierResolver;
     this.pageMessageOptionsResolver = options.pageMessageOptionsResolver;
     this.shouldChangePage = options.shouldChangePage || null;
@@ -65,14 +65,7 @@ class BasePaginator extends EventEmitter {
   }
 
   _collectorFilter(...args) {
-    return this.collectorFilter(this.getCollectorArgs(args));
-  }
-
-  get collectorFilterOptions() {
-    return {
-      ...this.options,
-      filter: this._collectorFilter.bind(this),
-    };
+    return this._collectorOptions.filter(this.getCollectorArgs(args));
   }
 
   _handleCollectEnd(collected, reason) {
@@ -128,12 +121,12 @@ class BasePaginator extends EventEmitter {
     });
 
     this.message = await this.messageSender(this);
+    Object.defineProperty(this, '_isSent', { value: true });
     this.collector = this._createCollector();
 
     this.collector.on('collect', this._handleCollect.bind(this));
     this.collector.on('end', this._handleCollectEnd.bind(this));
     await this._postSetup();
-    Object.defineProperty(this, '_isSent', { value: true });
   }
 
   async _handleCollect(...args) {
@@ -179,12 +172,15 @@ class BasePaginator extends EventEmitter {
     else return this.maxNumberOfPages;
   }
 
-  get previousPageIdentifier() {
-    return this._previousPageIdentifier || null;
+  get collectorOptions() {
+    return {
+      ...this._collectorOptions,
+      filter: this._collectorFilter.bind(this),
+    };
   }
 
-  set previousPageIdentifier(previousPageIdentifier) {
-    this._previousPageIdentifier = previousPageIdentifier;
+  set collectorOptions(options) {
+    this._collectorOptions = options;
   }
 
   setPage(pageIdentifier, pageMessageOptions) {
@@ -198,7 +194,12 @@ class BasePaginator extends EventEmitter {
   }
 
   setCollectorFilter(collectorFilter) {
-    this.collectorFilter = collectorFilter;
+    this.options.filter = collectorFilter;
+    return this;
+  }
+
+  setCollectorOptions(collectorOptions) {
+    this.collectorOptions = collectorOptions;
     return this;
   }
 

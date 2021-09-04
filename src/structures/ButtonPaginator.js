@@ -15,13 +15,12 @@ class ButtonPaginator extends ActionRowPaginator {
         button.customId = button.customId
           ? this._generateCustomId(button.customId)
           : this._generateCustomId(button.label);
-
         if (!button.style) button.style = 'PRIMARY';
         if (button.row) {
           if (button.row > 0 && button.row < buttonRows.length) {
             buttonRows[button.row].push(button);
           } else {
-            buttonRows[button.row] = [button];
+            buttonRows[0] = [button];
           }
         } else {
           buttonRows[0].push(button);

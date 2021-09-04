@@ -4,7 +4,9 @@ const { Util } = require('discord.js');
 
 exports.BasePaginatorDefaults = {
   startingPageIdentifier: 0,
-  idle: 6e4,
+  collectorOptions: {
+    idle: 6e4,
+  },
   useCache: true,
   shouldChangePage: ({ newPageIdentifier, previousPageIdentifier, paginator }) =>
     !paginator.message.deleted && newPageIdentifier !== previousPageIdentifier,
@@ -16,8 +18,10 @@ exports.BasePaginatorDefaults = {
 
 exports.ReactionPaginatorDefaults = Util.mergeDefault(exports.BasePaginatorDefaults, {
   emojiList: ['⏪', '⏩'],
-  collectorFilter: ({ reaction, user, paginator }) =>
-    user === paginator.user && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
+  collectorOptions: {
+    filter: ({ reaction, user, paginator }) =>
+      user === paginator.user && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
+  },
   pageIdentifierResolver: ({ reaction, paginator }) => {
     let newPageIdentifier = paginator.currentPageIdentifier;
     switch (reaction.emoji.name) {
@@ -46,7 +50,9 @@ exports.ActionRowPaginatoDrefaults = Util.mergeDefault(exports.BasePaginatorDefa
       components: [],
     },
   ],
-  collectorFilter: ({ interaction, paginator }) => interaction.user === paginator.user && !interaction.user.bot,
+  collectorOptions: {
+    filter: ({ interaction, paginator }) => interaction.user === paginator.user && !interaction.user.bot,
+  },
 });
 
 exports.ButtonPaginatorDefaults = {
@@ -59,10 +65,10 @@ exports.ButtonPaginatorDefaults = {
     },
   ],
   pageIdentifierResolver: ({ interaction, paginator }) => {
-    const val = interaction.customId.toLowerCase();
+    const val = interaction.component.label.toLowerCase();
     let newPageIdentifier = paginator.currentPageIdentifier;
-    if (val.includes('prev')) newPageIdentifier = paginator.currentPageIdentifier - 1;
-    else if (val.includes('next')) newPageIdentifier = paginator.currentPageIdentifier + 1;
+    if (val === 'previous') newPageIdentifier = paginator.currentPageIdentifier - 1;
+    else if (val === 'next') newPageIdentifier = paginator.currentPageIdentifier + 1;
     // The default identifier is a cyclic index.
     if (newPageIdentifier < 0) {
       newPageIdentifier = paginator.maxNumberOfPages + (newPageIdentifier % paginator.maxNumberOfPages);

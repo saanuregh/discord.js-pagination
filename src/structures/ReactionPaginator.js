@@ -16,7 +16,7 @@ class ReactionPaginator extends BasePaginator {
   }
 
   _createCollector() {
-    return this.message.createReactionCollector(this.collectorFilterOptions);
+    return this.message.createReactionCollector(this.collectorOptions);
   }
 
   getCollectorArgs(args) {

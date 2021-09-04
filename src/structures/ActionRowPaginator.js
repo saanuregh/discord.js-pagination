@@ -44,7 +44,7 @@ class ActionRowPaginator extends BasePaginator {
   }
 
   _createCollector() {
-    return this.message.createMessageComponentCollector(this.collectorFilterOptions);
+    return this.message.createMessageComponentCollector(this.collectorOptions);
   }
 
   getCollectorArgs(args) {
@@ -52,10 +52,9 @@ class ActionRowPaginator extends BasePaginator {
     return { interaction, paginator: this };
   }
 
-  _collectorFilter(...args) {
-    const [interaction] = args;
+  _collectorFilter(interaction) {
     if (interaction.customId.startsWith(this.customIdPrefix) && interaction.customId.endsWith(this.customIdSuffix)) {
-      return super._collectorFilter(...args);
+      return super._collectorFilter(interaction);
     }
     return false;
   }
