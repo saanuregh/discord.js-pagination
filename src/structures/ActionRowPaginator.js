@@ -49,7 +49,7 @@ class ActionRowPaginator extends BasePaginator {
 
   getCollectorArgs(args) {
     const [interaction] = args;
-    return { interaction, paginator: this };
+    return super.getCollectorArgs({ interaction });
   }
 
   _collectorFilter(interaction) {

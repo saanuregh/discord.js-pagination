@@ -60,8 +60,8 @@ class BasePaginator extends EventEmitter {
     throw new Error('_createCollector has not been implemented');
   }
 
-  getCollectorArgs() {
-    throw new Error('getCollectorArgs has not been implements.');
+  getCollectorArgs(args) {
+    return { ...args, paginator: this };
   }
 
   _collectorFilter(...args) {

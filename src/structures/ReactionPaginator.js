@@ -21,7 +21,7 @@ class ReactionPaginator extends BasePaginator {
 
   getCollectorArgs(args) {
     const [reaction, user] = args;
-    return { reaction, user, paginator: this };
+    return super.getCollectorArgs({ reaction, user });
   }
 
   async _postSetup() {
