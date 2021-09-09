@@ -1,11 +1,11 @@
 'use strict';
 const { MessageActionRow, Util } = require('discord.js');
 const BasePaginator = require('./BasePaginator');
-const { ActionRowPaginatoDrefaults } = require('../util/Defaults');
+const ActionRowPaginatorOptions = require('../util/ActionRowPaginatorOptions');
 
 class ActionRowPaginator extends BasePaginator {
   constructor(interaction, options) {
-    super(interaction, Util.mergeDefault(ActionRowPaginatoDrefaults, options));
+    super(interaction, Util.mergeDefault(ActionRowPaginatorOptions.createDefault(), options));
 
     if (typeof options.messageActionRows !== 'object' || options.messageActionRows.length === 0) {
       throw new Error('messageActionRows is not defined or is empty');
