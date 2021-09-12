@@ -66,26 +66,26 @@ module.exports = {
       return { ...paginator.currentIdentifiers, pageIdentifier };
     };
 
-    const pageMessageOptionsResolver = ({ newIdentifiers, paginator }) => {
+    const pageEmbedResolver = ({ newIdentifiers, paginator }) => {
       const newPageEmbed = new MessageEmbed();
       newPageEmbed
         .setTitle(`This embed is index ${newIdentifiers.pageIdentifier}!`)
         .setDescription(`That means it is page #${newIdentifiers.pageIdentifier + 1}`);
       newPageEmbed.setFooter(`Page ${newIdentifiers.pageIdentifier + 1} / ${paginator.maxNumberOfPages}`);
-      return { ...paginator.messageOptionComponents, embeds: [newPageEmbed] };
+      return newPageEmbed;
     };
 
     const buttonPaginator = new ButtonPaginator(interaction, {
       buttons,
       identifiersResolver,
-      pageMessageOptionsResolver,
+      pageEmbedResolver,
       maxNumberOfPages: 10,
     })
       .on(PaginatorEvents.PAGINATION_READY, async paginator => {
         for (const button of paginator.getMessageActionRow(0).components) {
           button.disabled = false;
         }
-        await paginator.message.edit(paginator.currentPage);
+        await paginator.message.edit(paginator.currentPageMessageOptions);
       })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
       .on(PaginatorEvents.PAGINATION_END, basicEndHandler);

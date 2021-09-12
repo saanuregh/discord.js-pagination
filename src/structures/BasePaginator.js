@@ -17,12 +17,12 @@ class BasePaginator extends EventEmitter {
     if (typeof options.messageSender !== 'function') {
       throw new Error('messageSender must be a function');
     }
-    if (typeof options.pageMessageOptionsResolver === 'undefined') {
+    if (typeof options.pageEmbedResolver === 'undefined') {
       if (typeof options.useCache === 'boolean' && !options.useCache) {
-        throw new Error('pageMessageOptionsResolver must be provided if useCache is false');
+        throw new Error('pageEmbedResolver must be provided if useCache is false');
       }
       if (typeof options.pages === 'undefined' || options.pages.length === 0) {
-        throw new Error('pages must be provided if not using a pageMessageOptionsResolver');
+        throw new Error('pages must be provided if not using a pageEmbedResolver');
       }
     }
 
@@ -36,13 +36,15 @@ class BasePaginator extends EventEmitter {
     this.messageSender = options.messageSender;
     this.collectorOptions = options.collectorOptions;
     this.identifiersResolver = options.identifiersResolver;
-    this.pageMessageOptionsResolver = options.pageMessageOptionsResolver;
+    this.pageEmbedResolver = options.pageEmbedResolver;
+    this.messageOptionsResolver = options.messageOptionsResolver;
     this.shouldChangePage = options.shouldChangePage || null;
     this.footerResolver = options.footerResolver || null;
     this.initialIdentifiers = options.initialIdentifiers;
+    this.currentIdentifiers = {};
     this.useCache = typeof options.useCache === 'boolean' ? options.useCache : true;
     // If using cache and no embed resolver, pages can infer max number of pages.
-    if (this.useCache && typeof this.pageMessageOptionsResolver !== 'function') {
+    if (this.useCache && typeof this.pageEmbedResolver !== 'function') {
       this.maxNumberOfPages = this.options.pages.length;
     } else {
       this.maxNumberOfPages = options.maxNumberOfPages;
@@ -51,7 +53,7 @@ class BasePaginator extends EventEmitter {
     if (this.useCache && options.pages && options.pages.length > 0) {
       const { pages } = options;
       pages.forEach((page, pageIndex) => {
-        this.pages.set(pageIndex, { embeds: [page] });
+        this.pages.set(pageIndex, page);
       });
     }
   }
@@ -73,26 +75,23 @@ class BasePaginator extends EventEmitter {
     this.removeAllListeners();
   }
 
-  async _resolvePageMessageOptions(changePageArgs) {
-    const { currentIdentifiers, newIdentifiers } = changePageArgs;
-    let newPage = null;
-    if (this.useCache && this.pages.has(newIdentifiers.pageIdentifier)) {
-      newPage = this.pages.get(newIdentifiers.pageIdentifier);
-    } else {
-      newPage = await this.pageMessageOptionsResolver(changePageArgs);
-      if (this.useCache) {
-        this.pages.set(newIdentifiers.pageIdentifier, newPage);
-      }
+  async _resolvePageEmbed(changePageArgs) {
+    const {
+      newIdentifiers: { pageIdentifier },
+    } = changePageArgs;
+    let newPage = await this.pageEmbedResolver(changePageArgs);
+    if (this.useCache) {
+      this.pages.set(pageIdentifier, newPage);
     }
-
-    if (typeof this.footerResolver === 'function' && newPage !== null && typeof newPage !== 'undefined') {
-      newPage.embeds[0].setFooter(await this.footerResolver(this));
-    }
-
-    this.previousIdentifiers = currentIdentifiers;
-    this.currentIdentifiers = newIdentifiers;
-
     return newPage;
+  }
+
+  async _resolveMessageOptions({ messageOptions = {}, changePageArgs }) {
+    if (typeof this.messageOptionsResolver === 'function') {
+      const customMessageOptions = await this.messageOptionsResolver(changePageArgs);
+      return { ...messageOptions, ...customMessageOptions, embeds: [this.currentPage] };
+    }
+    return { ...messageOptions, embeds: [this.currentPage] };
   }
 
   _postSetup() {
@@ -112,15 +111,33 @@ class BasePaginator extends EventEmitter {
     this.emit(PaginatorEvents.COLLECT_END, args);
   }
 
+  async _resolveCurrentPage(changePageArgs) {
+    const { newIdentifiers, currentIdentifiers } = changePageArgs;
+    if (this.useCache && this.pages.has(newIdentifiers.pageIdentifier)) {
+      this.currentPage = this.pages.get(newIdentifiers.pageIdentifier);
+    } else {
+      this.currentPage = await this._resolvePageEmbed(changePageArgs);
+    }
+    if (typeof this.footerResolver === 'function') {
+      this.currentPage.setFooter(await this.footerResolver(this));
+    }
+    this.previousIdentifiers = currentIdentifiers;
+    this.currentIdentifiers = newIdentifiers;
+  }
+
   async send() {
     if (this._isSent) return;
-    this.currentPage = await this._resolvePageMessageOptions({
+    const changePageArgs = {
       newIdentifiers: this.initialIdentifiers,
       currentIdentifiers: {},
       paginator: this,
-    });
+    };
 
-    this.message = await this.messageSender(this);
+    await this._resolveCurrentPage(changePageArgs);
+
+    const messageOptions = await this._resolveMessageOptions({ changePageArgs });
+    this.currentPageMessageOptions = messageOptions;
+    this.message = await this.messageSender({ interaction: this.interaction, messageOptions });
     Object.defineProperty(this, '_isSent', { value: true });
     this.collector = this._createCollector();
 
@@ -155,9 +172,11 @@ class BasePaginator extends EventEmitter {
 
   async changePage(changePageArgs) {
     if (await this._shouldChangePage(changePageArgs)) {
-      this.currentPage = await this._resolvePageMessageOptions(changePageArgs);
+      await this._resolveCurrentPage(changePageArgs);
       this.emit(PaginatorEvents.BEFORE_PAGE_CHANGED, changePageArgs);
-      await this.message.edit(this.currentPage);
+      const messageOptions = await this._resolveMessageOptions({ changePageArgs });
+      this.currentPageMessageOptions = messageOptions;
+      await this.message.edit(messageOptions);
       this.emit(PaginatorEvents.PAGE_CHANGED, changePageArgs);
     } else {
       this.emit(PaginatorEvents.PAGE_UNCHANGED);
@@ -184,8 +203,8 @@ class BasePaginator extends EventEmitter {
     this._collectorOptions = options;
   }
 
-  setPage(pageIdentifier, pageMessageOptions) {
-    this.pages.set(pageIdentifier, pageMessageOptions);
+  setPage(pageIdentifier, pageEmbed) {
+    this.pages.set(pageIdentifier, pageEmbed);
     return this;
   }
 
@@ -209,8 +228,8 @@ class BasePaginator extends EventEmitter {
     return this;
   }
 
-  setPageMessageOptionsResolver(pageMessageOptionsResolver) {
-    this.pageMessageOptionsResolver = pageMessageOptionsResolver;
+  setPageEmbedResolver(pageEmbedResolver) {
+    this.pageEmbedResolver = pageEmbedResolver;
     return this;
   }
 

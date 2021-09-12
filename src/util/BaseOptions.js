@@ -3,9 +3,9 @@
 class BaseOptions extends null {
   static createDefault() {
     return {
-      messageSender: async paginator => {
-        await paginator.interaction.editReply(paginator.currentPage);
-        return paginator.interaction.fetchReply();
+      messageSender: async ({ interaction, messageOptions }) => {
+        await interaction.editReply(messageOptions);
+        return interaction.fetchReply();
       },
       initialIdentifiers: { pageIdentifier: 0 },
       shouldChangePage: ({ newIdentifiers, currentIdentifiers, paginator }) =>

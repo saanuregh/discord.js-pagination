@@ -119,7 +119,7 @@ module.exports = {
       return null;
     };
 
-    const pageMessageOptionsResolver = async ({ newIdentifiers, currentIdentifiers, paginator }) => {
+    const pageEmbedResolver = async ({ newIdentifiers, currentIdentifiers, paginator }) => {
       const { pageIdentifier: newPageIdentifier } = newIdentifiers;
       const { pageIdentifier: currentPageIdentifier } = currentIdentifiers;
       if (newPageIdentifier !== currentPageIdentifier) {
@@ -138,7 +138,7 @@ module.exports = {
         pokemonResult.stats.forEach(statObject => {
           newEmbed.addField(statObject.stat.name, `${statObject.base_stat}`, true);
         });
-        return { ...paginator.messageOptionComponents, embeds: [newEmbed] };
+        return newEmbed;
       }
       return paginator.currentPage;
     };
@@ -168,6 +168,11 @@ module.exports = {
       );
     };
 
+    const endHandler = ({ reason, paginator }) => {
+      basicEndHandler({ reason, paginator });
+      pokemonSelectOptions.clear();
+    };
+
     const actionRowPaginator = new ActionRowPaginator(interaction, {
       useCache: false,
       messageActionRows,
@@ -176,13 +181,13 @@ module.exports = {
         selectOptionsIdentifier: initialSelectIdentifier,
       },
       identifiersResolver,
-      pageMessageOptionsResolver,
+      pageEmbedResolver,
       shouldChangePage,
     })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
       .on(PaginatorEvents.PAGINATION_END, basicEndHandler)
       .on(PaginatorEvents.BEFORE_PAGE_CHANGED, handleBeforePageChanged)
-      .on(PaginatorEvents.PAGINATION_END, () => pokemonSelectOptions.clear());
+      .on(PaginatorEvents.PAGINATION_END, endHandler);
     await actionRowPaginator.send();
     return actionRowPaginator.message;
   },

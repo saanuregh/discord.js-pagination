@@ -64,15 +64,29 @@ class ActionRowPaginator extends BasePaginator {
     super._collectStart(args);
   }
 
+  async _resolveMessageOptions({ changePageArgs }) {
+    const messageOptions = await super._resolveMessageOptions({
+      messageOptions: this.messageOptionComponents,
+      changePageArgs,
+    });
+    return messageOptions;
+  }
+
   getMessageActionRow(row = 0) {
     return this.getComponent(row);
   }
 
   getComponent(row = 0, index = -1) {
-    if (row < 0 || row >= this.messageActionRows.length) return null;
-    if (index < 0) return this.messageActionRows[row];
-    if (index >= this.messageActionRows[row].components.length) return null;
-    return this.messageActionRows[row].components[index];
+    if (
+      typeof this.currentPageMessageOptions === 'undefined' ||
+      row < 0 ||
+      row >= this.currentPageMessageOptions.components.length
+    ) {
+      return null;
+    }
+    if (index < 0) return this.currentPageMessageOptions.components[row];
+    if (index >= this.currentPageMessageOptions.components[row].components.length) return null;
+    return this.currentPageMessageOptions.components[row].components[index];
   }
 
   get messageOptionComponents() {
