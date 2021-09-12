@@ -10,31 +10,31 @@ module.exports = {
     .setDescription('Replies with a custom reaction based pagination!'),
   async execute(interaction) {
     const emojiList = ['⏪', '❌', '⏩'];
-    const pageIdentifierResolver = async ({ reaction, paginator }) => {
-      let newPageIdentifier = paginator.currentPageIdentifier;
+    const identifiersResolver = async ({ reaction, paginator }) => {
+      let { pageIdentifier = 0 } = paginator.currentIdentifiers;
       switch (reaction.emoji.name) {
         case paginator.emojiList[0]:
-          newPageIdentifier -= 1;
+          pageIdentifier -= 1;
           break;
         case paginator.emojiList[1]:
           await paginator.message.delete();
           break;
         case paginator.emojiList[2]:
-          newPageIdentifier += 1;
+          pageIdentifier += 1;
           break;
       }
 
-      if (newPageIdentifier < 0) {
-        newPageIdentifier = paginator.maxNumberOfPages + (newPageIdentifier % paginator.maxNumberOfPages);
-      } else if (newPageIdentifier >= paginator.maxNumberOfPages) {
-        newPageIdentifier %= paginator.maxNumberOfPages;
+      if (pageIdentifier < 0) {
+        pageIdentifier = paginator.maxNumberOfPages + (pageIdentifier % paginator.maxNumberOfPages);
+      } else if (pageIdentifier >= paginator.maxNumberOfPages) {
+        pageIdentifier %= paginator.maxNumberOfPages;
       }
-      return newPageIdentifier;
+      return { ...paginator.currentIdentifiers, pageIdentifier };
     };
     const reactionPaginator = new ReactionPaginator(interaction, {
       pages,
       emojiList,
-      pageIdentifierResolver,
+      identifiersResolver,
     })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
       .on(PaginatorEvents.PAGINATION_END, basicEndHandler);

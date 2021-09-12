@@ -38,38 +38,37 @@ module.exports = {
     ];
 
     // eslint-disable-next-line no-shadow
-    // eslint-disable-next-line no-shadow
-    const pageIdentifierResolver = async ({ interaction, paginator }) => {
+    const identifiersResolver = async ({ interaction, paginator }) => {
       const val = interaction.component.label.toLowerCase();
-      let newPageIdentifier = paginator.currentPageIdentifier;
+      let { pageIdentifier } = paginator.currentIdentifiers;
       switch (val) {
         case 'first':
-          return paginator.startingPageIdentifier;
+          return paginator.initialIdentifiers;
         case 'next':
-          newPageIdentifier = paginator.currentPageIdentifier + 1;
+          pageIdentifier += 1;
           break;
         case 'delete':
           await paginator.message.delete();
           break;
         case 'previous':
-          newPageIdentifier = paginator.currentPageIdentifier - 1;
+          pageIdentifier -= 1;
           break;
         case 'last':
-          return paginator.maxNumberOfPages - 1;
+          pageIdentifier = paginator.maxNumberOfPages - 1;
       }
 
-      if (newPageIdentifier < 0) {
-        newPageIdentifier = paginator.maxNumberOfPages + (newPageIdentifier % paginator.maxNumberOfPages);
-      } else if (newPageIdentifier >= paginator.maxNumberOfPages) {
-        newPageIdentifier %= paginator.maxNumberOfPages;
+      if (pageIdentifier < 0) {
+        pageIdentifier = paginator.maxNumberOfPages + (pageIdentifier % paginator.maxNumberOfPages);
+      } else if (pageIdentifier >= paginator.maxNumberOfPages) {
+        pageIdentifier %= paginator.maxNumberOfPages;
       }
-      return newPageIdentifier;
+      return { ...paginator.currentIdentifiers, pageIdentifier };
     };
 
     const buttonPaginator = new ButtonPaginator(interaction, {
       pages,
       buttons,
-      pageIdentifierResolver,
+      identifiersResolver,
     })
       .on(PaginatorEvents.PAGINATION_READY, async paginator => {
         for (const actionRow of paginator.messageActionRows) {

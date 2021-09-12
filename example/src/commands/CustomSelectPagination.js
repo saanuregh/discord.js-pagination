@@ -19,21 +19,21 @@ module.exports = {
     }
     const selectPaginator = new SelectPaginator(interaction, {
       pages,
-      placeholder: "You're now on page #1",
       selectOptions: selectOptions,
       messageActionRows: [
         {
           components: [
             {
               disabled: true,
+              placeholder: "You're now on page #1",
             },
           ],
         },
       ],
     })
-      .on(PaginatorEvents.BEFORE_PAGE_CHANGED, ({ newPageIdentifier, paginator }) => {
+      .on(PaginatorEvents.BEFORE_PAGE_CHANGED, ({ newIdentifiers, paginator }) => {
         // Here we use the BEFORE_PAGE_CHANGED event to update the placeholder text
-        paginator.getSelectMenu().placeholder = `You're now on page #${newPageIdentifier + 1}`;
+        paginator.getSelectMenu().placeholder = `You're now on page #${newIdentifiers.pageIdentifier + 1}`;
       })
       .on(PaginatorEvents.PAGINATION_READY, async paginator => {
         selectPaginator.getSelectMenu().disabled = false;

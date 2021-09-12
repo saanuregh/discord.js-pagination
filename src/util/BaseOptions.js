@@ -7,9 +7,9 @@ class BaseOptions extends null {
         await paginator.interaction.editReply(paginator.currentPage);
         return paginator.interaction.fetchReply();
       },
-      startingPageIdentifier: 0,
-      shouldChangePage: ({ newPageIdentifier, previousPageIdentifier, paginator }) =>
-        !paginator.message.deleted && newPageIdentifier !== previousPageIdentifier,
+      initialIdentifiers: { pageIdentifier: 0 },
+      shouldChangePage: ({ newIdentifiers, currentIdentifiers, paginator }) =>
+        !paginator.message.deleted && newIdentifiers.pageIdentifier !== currentIdentifiers.pageIdentifier,
       useCache: true,
       collectorOptions: {
         filter: ({ interaction, paginator }) => interaction.user === paginator.user && !interaction.user.bot,

@@ -14,18 +14,18 @@ class ButtonPaginatorOptions extends ActionRowPaginatorOptions {
           label: 'Next',
         },
       ],
-      pageIdentifierResolver: ({ interaction, paginator }) => {
+      identifiersResolver: ({ interaction, paginator }) => {
         const val = interaction.component.label.toLowerCase();
-        let newPageIdentifier = paginator.currentPageIdentifier;
-        if (val === 'previous') newPageIdentifier = paginator.currentPageIdentifier - 1;
-        else if (val === 'next') newPageIdentifier = paginator.currentPageIdentifier + 1;
+        let { pageIdentifier } = paginator.currentIdentifiers;
+        if (val === 'previous') pageIdentifier -= 1;
+        else if (val === 'next') pageIdentifier += 1;
         // The default identifier is a cyclic index.
-        if (newPageIdentifier < 0) {
-          newPageIdentifier = paginator.maxNumberOfPages + (newPageIdentifier % paginator.maxNumberOfPages);
-        } else if (newPageIdentifier >= paginator.maxNumberOfPages) {
-          newPageIdentifier %= paginator.maxNumberOfPages;
+        if (pageIdentifier < 0) {
+          pageIdentifier = paginator.maxNumberOfPages + (pageIdentifier % paginator.maxNumberOfPages);
+        } else if (pageIdentifier >= paginator.maxNumberOfPages) {
+          pageIdentifier %= paginator.maxNumberOfPages;
         }
-        return newPageIdentifier;
+        return { ...paginator.currentIdentifiers, pageIdentifier };
       },
       collectorOptions: {
         filter: ({ interaction, paginator }) => interaction.user === paginator.user && !interaction.user.bot,

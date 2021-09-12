@@ -11,23 +11,23 @@ class ReactionPaginatorOptions extends BaseOptions {
         filter: ({ reaction, user, paginator }) =>
           user === paginator.user && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
       },
-      pageIdentifierResolver: ({ reaction, paginator }) => {
-        let newPageIdentifier = paginator.currentPageIdentifier;
+      identifiersResolver: ({ reaction, paginator }) => {
+        let { pageIdentifier } = paginator.currentIdentifiers;
         switch (reaction.emoji.name) {
           case paginator.emojiList[0]:
-            newPageIdentifier -= 1;
+            pageIdentifier -= 1;
             break;
           case paginator.emojiList[1]:
-            newPageIdentifier += 1;
+            pageIdentifier += 1;
             break;
         }
         // The default identifier is a cyclic index.
-        if (newPageIdentifier < 0) {
-          newPageIdentifier = paginator.maxNumberOfPages + (newPageIdentifier % paginator.maxNumberOfPages);
-        } else if (newPageIdentifier >= paginator.maxNumberOfPages) {
-          newPageIdentifier %= paginator.maxNumberOfPages;
+        if (pageIdentifier < 0) {
+          pageIdentifier = paginator.maxNumberOfPages + (pageIdentifier % paginator.maxNumberOfPages);
+        } else if (pageIdentifier >= paginator.maxNumberOfPages) {
+          pageIdentifier %= paginator.maxNumberOfPages;
         }
-        return newPageIdentifier;
+        return { ...paginator.currentIdentifiers, pageIdentifier };
       },
     });
   }

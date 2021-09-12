@@ -12,7 +12,8 @@ module.exports = {
     .setDescription('Replies with a dynamic advanced pagination'),
   async execute(interaction) {
     const variation = 25;
-    const maxSelectIdentifier = 150 / variation;
+    const maxPokemon = 151;
+    const maxSelectIdentifiers = Math.floor(maxPokemon / variation) + (maxPokemon % variation);
     const messageActionRows = [
       {
         components: [
@@ -52,8 +53,7 @@ module.exports = {
 
     const pokemonApiUrl = 'https://pokeapi.co/api/v2/';
     const pokemonSelectOptions = new Collection();
-    let selectIdentifier = 0;
-    const initialPokemon = await fetch(`${pokemonApiUrl}pokemon?limit=${variation}&offset=0`).then(res => res.json());
+    const initialSelectIdentifier = 0;
 
     const constructPokemonOptions = pokemonApiResponse => {
       const pokemonOptions = [];
@@ -61,91 +61,128 @@ module.exports = {
         const splitPokemonUrl = pokemon.url.split('/');
         const pokemonNumber = splitPokemonUrl[splitPokemonUrl.length - 2];
         pokemonOptions.push({
-          label: `${`${pokemonNumber}`.padStart(3, '0')} - ${pokemon.name}`,
+          label: `#${`${pokemonNumber}`.padStart(3, '0')} - ${pokemon.name}`,
           value: pokemon.name,
         });
       });
       return pokemonOptions;
     };
 
-    pokemonSelectOptions.set(0, constructPokemonOptions(initialPokemon));
+    const initialUrl = `${pokemonApiUrl}pokemon?limit=${variation}&offset=${initialSelectIdentifier}`;
+    const initialPokemon = await fetch(initialUrl).then(res => res.json());
+    pokemonSelectOptions.set(initialSelectIdentifier, constructPokemonOptions(initialPokemon));
 
-    messageActionRows[1].components[0].options = pokemonSelectOptions.get(selectIdentifier);
+    messageActionRows[1].components[0].options = pokemonSelectOptions.get(initialSelectIdentifier);
 
     // eslint-disable-next-line no-shadow
-    const pageIdentifierResolver = ({ interaction }) => {
+    const identifiersResolver = async ({ interaction, paginator }) => {
       if (interaction.componentType === 'BUTTON') {
-        return interaction.component.label;
+        let { selectOptionsIdentifier } = paginator.currentIdentifiers;
+        switch (interaction.component.label) {
+          case 'start':
+            selectOptionsIdentifier = paginator.initialIdentifiers.selectOptionsIdentifier;
+            break;
+          case `-${variation}`:
+            selectOptionsIdentifier -= 1;
+            break;
+          case `+${variation}`:
+            selectOptionsIdentifier += 1;
+            break;
+          case 'end':
+            selectOptionsIdentifier = maxSelectIdentifiers - 1;
+            break;
+        }
+
+        if (selectOptionsIdentifier < 0) {
+          selectOptionsIdentifier = maxSelectIdentifiers + (selectOptionsIdentifier % maxSelectIdentifiers);
+        } else if (selectOptionsIdentifier >= maxSelectIdentifiers) {
+          selectOptionsIdentifier %= maxSelectIdentifiers;
+        }
+
+        if (!pokemonSelectOptions.has(selectOptionsIdentifier)) {
+          const limit = selectOptionsIdentifier === maxSelectIdentifiers - 1 ? 1 : variation;
+          const url = `${pokemonApiUrl}pokemon?limit=${limit}&offset=${selectOptionsIdentifier * variation}`;
+          const pokemon = await fetch(url).then(res => res.json());
+          pokemonSelectOptions.set(selectOptionsIdentifier, constructPokemonOptions(pokemon));
+        }
+
+        return {
+          ...paginator.currentIdentifiers,
+          selectOptionsIdentifier,
+        };
       } else if (interaction.componentType === 'SELECT_MENU') {
-        return interaction.values[0];
+        return {
+          ...paginator.currentIdentifiers,
+          pageIdentifier: interaction.values[0],
+        };
       }
       return null;
     };
 
-    const pageMessageOptionsResolver = async ({ newPageIdentifier, paginator }) => {
-      switch (newPageIdentifier) {
-        case 'start':
-          selectIdentifier = 0;
-          break;
-        case `-${variation}`:
-          selectIdentifier -= 1;
-          break;
-        case `+${variation}`:
-          selectIdentifier += 1;
-          break;
-        case 'end':
-          selectIdentifier = maxSelectIdentifier;
-          break;
-        default: {
-          // Pokemon name
-          const pokemonResult = await fetch(`${pokemonApiUrl}pokemon/${newPageIdentifier}`).then(res => res.json());
-          const newEmbed = new MessageEmbed()
-            .setTitle(`${`${pokemonResult.id}`.padStart(3, '0')} - ${newPageIdentifier}`)
-            .setDescription(`Viewing ${newPageIdentifier}`)
-            .setThumbnail(pokemonResult.sprites.front_default)
-            .addField('Types', pokemonResult.types.map(typeObject => typeObject.type.name).join(', '), true)
-            .addField(
-              'Abilities',
-              pokemonResult.abilities.map(abilityObject => abilityObject.ability.name).join(', '),
-              false,
-            );
-          pokemonResult.stats.forEach(statObject => {
-            newEmbed.addField(statObject.stat.name, `${statObject.base_stat}`, true);
-          });
-          return { ...paginator.messageOptionComponents, embeds: [newEmbed] };
+    const pageMessageOptionsResolver = async ({ newIdentifiers, currentIdentifiers, paginator }) => {
+      const { pageIdentifier: newPageIdentifier } = newIdentifiers;
+      const { pageIdentifier: currentPageIdentifier } = currentIdentifiers;
+      if (newPageIdentifier !== currentPageIdentifier) {
+        // Pokemon name
+        const pokemonResult = await fetch(`${pokemonApiUrl}pokemon/${newPageIdentifier}`).then(res => res.json());
+        const newEmbed = new MessageEmbed()
+          .setTitle(`Pokedex #${`${pokemonResult.id}`.padStart(3, '0')} - ${newPageIdentifier}`)
+          .setDescription(`Viewing ${newPageIdentifier}`)
+          .setThumbnail(pokemonResult.sprites.front_default)
+          .addField('Types', pokemonResult.types.map(typeObject => typeObject.type.name).join(', '), true)
+          .addField(
+            'Abilities',
+            pokemonResult.abilities.map(abilityObject => abilityObject.ability.name).join(', '),
+            false,
+          );
+        pokemonResult.stats.forEach(statObject => {
+          newEmbed.addField(statObject.stat.name, `${statObject.base_stat}`, true);
+        });
+        return { ...paginator.messageOptionComponents, embeds: [newEmbed] };
+      }
+      return paginator.currentPage;
+    };
+
+    const handleBeforePageChanged = ({ newIdentifiers, currentIdentifiers, paginator }) => {
+      const { selectOptionsIdentifier: currentSelectOptionsIdentifier } = currentIdentifiers;
+      const { selectOptionsIdentifier: newSelectOptionsIdentifier } = newIdentifiers;
+      if (currentSelectOptionsIdentifier !== newSelectOptionsIdentifier) {
+        paginator.getComponent(1, 0).options = pokemonSelectOptions.get(newSelectOptionsIdentifier);
+        if (newSelectOptionsIdentifier === maxSelectIdentifiers - 1) {
+          paginator.getComponent(1, 0).placeholder = `Currently viewing #151 - #151`;
+        } else {
+          paginator.getComponent(1, 0).placeholder = `Currently viewing #${`${
+            newSelectOptionsIdentifier * variation + 1
+          }`.padStart(3, '0')} - #${`${newSelectOptionsIdentifier * variation + variation}`.padStart(3, '0')}`;
         }
       }
+    };
 
-      const currentPageEmbed = new MessageEmbed(paginator.currentPage.embeds[0]);
-      if (!pokemonSelectOptions.has(selectIdentifier)) {
-        const limit = selectIdentifier === maxSelectIdentifier ? 1 : variation;
-        const url = `${pokemonApiUrl}pokemon?limit=${limit}&offset=${selectIdentifier * variation}`;
-        const pokemon = await fetch(url).then(res => res.json());
-        const options = constructPokemonOptions(pokemon);
-        pokemonSelectOptions.set(selectIdentifier, options);
-      }
-      paginator.getComponent(1, 0).options = pokemonSelectOptions.get(selectIdentifier);
-      if (selectIdentifier === maxSelectIdentifier) {
-        paginator.getComponent(1, 0).placeholder = `Currently viewing #151 - #151`;
-      } else {
-        paginator.getComponent(1, 0).placeholder = `Currently viewing #${`${selectIdentifier * variation}`.padStart(
-          3,
-          '0',
-        )} - #${`${selectIdentifier * variation + variation}`.padStart(3, '0')}`;
-      }
-      return { ...paginator.messageOptionComponents, embeds: [currentPageEmbed] };
+    const shouldChangePage = ({ newIdentifiers, currentIdentifiers }) => {
+      const { pageIdentifier: newPageIdentifier, selectOptionsIdentifier: newSelectOptionsIdentifier } = newIdentifiers;
+      const { pageIdentifier: currentPageIdentifier, selectOptionsIdentifier: currentSelectOptionsIdentifier } =
+        currentIdentifiers;
+
+      return (
+        newPageIdentifier !== currentPageIdentifier || newSelectOptionsIdentifier !== currentSelectOptionsIdentifier
+      );
     };
 
     const actionRowPaginator = new ActionRowPaginator(interaction, {
-      startingPageIdentifier: 'bulbasaur',
       useCache: false,
       messageActionRows,
-      pageIdentifierResolver,
+      initialIdentifiers: {
+        pageIdentifier: 'bulbasaur',
+        selectOptionsIdentifier: initialSelectIdentifier,
+      },
+      identifiersResolver,
       pageMessageOptionsResolver,
-      shouldChangePage: () => true,
+      shouldChangePage,
     })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
-      .on(PaginatorEvents.PAGINATION_END, basicEndHandler);
+      .on(PaginatorEvents.PAGINATION_END, basicEndHandler)
+      .on(PaginatorEvents.BEFORE_PAGE_CHANGED, handleBeforePageChanged)
+      .on(PaginatorEvents.PAGINATION_END, () => pokemonSelectOptions.clear());
     await actionRowPaginator.send();
     return actionRowPaginator.message;
   },
