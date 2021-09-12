@@ -8,7 +8,7 @@ const { basicEndHandler, basicErrorHandler } = require('../util/Constants');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('advanced-pagination')
+    .setName('action-row-pagination')
     .setDescription('Replies with a dynamic advanced pagination'),
   async execute(interaction) {
     const variation = 25;
