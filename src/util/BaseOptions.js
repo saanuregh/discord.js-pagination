@@ -3,6 +3,7 @@
 class BaseOptions extends null {
   static createDefault() {
     return {
+      maxPageCache: 100,
       messageSender: async ({ interaction, messageOptions }) => {
         await interaction.editReply(messageOptions);
         return interaction.fetchReply();

@@ -43,6 +43,7 @@ class BasePaginator extends EventEmitter {
     this.initialIdentifiers = options.initialIdentifiers;
     this.currentIdentifiers = {};
     this.useCache = typeof options.useCache === 'boolean' ? options.useCache : true;
+    this.maxPageCache = options.maxPageCache;
     // If using cache and no embed resolver, pages can infer max number of pages.
     if (this.useCache && typeof this.pageEmbedResolver !== 'function') {
       this.maxNumberOfPages = this.options.pages.length;
@@ -81,6 +82,9 @@ class BasePaginator extends EventEmitter {
     } = changePageArgs;
     let newPage = await this.pageEmbedResolver(changePageArgs);
     if (this.useCache) {
+      if (this.pages.size >= this.maxPageCache) {
+        this.pages.clear();
+      }
       this.pages.set(pageIdentifier, newPage);
     }
     return newPage;
