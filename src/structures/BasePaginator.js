@@ -137,7 +137,7 @@ class BasePaginator extends EventEmitter {
 
     const messageOptions = await this._resolveMessageOptions({ changePageArgs });
     this.currentPageMessageOptions = messageOptions;
-    this.message = await this.messageSender({ interaction: this.interaction, messageOptions });
+    this.message = await this.messageSender({ interaction: this.interaction, messageOptions, paginator: this });
     Object.defineProperty(this, '_isSent', { value: true });
     this.collector = this._createCollector();
 
