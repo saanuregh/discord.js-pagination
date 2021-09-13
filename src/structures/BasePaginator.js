@@ -183,7 +183,7 @@ class BasePaginator extends EventEmitter {
       await this.message.edit(messageOptions);
       this.emit(PaginatorEvents.PAGE_CHANGED, changePageArgs);
     } else {
-      this.emit(PaginatorEvents.PAGE_UNCHANGED);
+      this.emit(PaginatorEvents.PAGE_UNCHANGED, changePageArgs);
     }
   }
 
