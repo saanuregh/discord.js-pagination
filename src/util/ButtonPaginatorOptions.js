@@ -27,9 +27,6 @@ class ButtonPaginatorOptions extends ActionRowPaginatorOptions {
         }
         return { ...paginator.currentIdentifiers, pageIdentifier };
       },
-      collectorOptions: {
-        filter: ({ interaction, paginator }) => interaction.user === paginator.user && !interaction.user.bot,
-      },
     };
   }
 }
