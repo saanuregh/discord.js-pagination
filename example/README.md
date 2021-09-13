@@ -24,9 +24,13 @@ npm run start
 The following commands are available as demonstrations:
 
 ### /advanced-pagination
-This is an advanced paghination example that uses both buttons and a select menu for navigation. It makes API calls to dynamically create page content.
+This is an action row pagination example that uses two select menus and a row of buttons for navigation. It makes API calls to dynamically create page content.
 
-![advanced-pagination-gif](https://imgur.com/hidL14k.gif)
+![advanced-pagination-gif](https://i.imgur.com/n9O0OH1.gif)
+### /action-row-pagination
+This is an action row paghination example that uses both buttons and a select menu for navigation. It makes API calls to dynamically create page content.
+
+![action-row-pagination-gif](https://imgur.com/hidL14k.gif)
 ### /custom-react-pagination
 A customised reaction example.
 
