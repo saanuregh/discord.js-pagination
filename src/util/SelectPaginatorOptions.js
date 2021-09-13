@@ -16,7 +16,7 @@ class SelectPaginatorOptions extends ActionRowPaginatorOptions {
       ],
       identifiersResolver: ({ interaction, paginator }) => {
         const [selectedValue] = interaction.values;
-        return { ...paginator.identifiers, pageIdentifier: parseInt(selectedValue) };
+        return { ...paginator.currentIdentifiers, pageIdentifier: parseInt(selectedValue) };
       },
     };
   }
