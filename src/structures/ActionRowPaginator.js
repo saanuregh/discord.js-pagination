@@ -22,7 +22,9 @@ class ActionRowPaginator extends BasePaginator {
           const { type, customId } = component;
           switch (type) {
             case 'SELECT_MENU':
-              component.customId = this._generateCustomId(`select-menu-${messageRowIndex}`);
+              component.customId = component.customId
+                ? this._generateCustomId(component.customId)
+                : this._generateCustomId(`select-menu-${messageRowIndex}`);
               break;
             case 'BUTTON':
               component.customId = component.customId
