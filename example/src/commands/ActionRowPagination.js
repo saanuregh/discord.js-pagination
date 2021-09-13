@@ -2,18 +2,18 @@
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { Collection, MessageEmbed } = require('discord.js');
-const fetch = require('node-fetch');
 const { PaginatorEvents, ActionRowPaginator } = require('../../../src');
 const { basicEndHandler, basicErrorHandler } = require('../util/Constants');
+const { constructPokemonOptions, PokeAPI } = require('../util/PokeAPI');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('action-row-pagination')
     .setDescription('Replies with a dynamic advanced pagination'),
   async execute(interaction) {
-    const variation = 25;
-    const maxPokemon = 151;
-    const maxSelectIdentifiers = Math.floor(maxPokemon / variation) + (maxPokemon % variation);
+    const SELECT_LIMIT = 25;
+    const MAX_POKEMON = 151;
+    const MAX_SELECTIONS = Math.floor(MAX_POKEMON / SELECT_LIMIT) + (MAX_POKEMON % SELECT_LIMIT > 0 ? 1 : 0);
     const messageActionRows = [
       {
         components: [
@@ -25,12 +25,12 @@ module.exports = {
           },
           {
             type: 'BUTTON',
-            label: `-${variation}`,
+            label: `-${SELECT_LIMIT}`,
             style: 'PRIMARY',
           },
           {
             type: 'BUTTON',
-            label: `+${variation}`,
+            label: `+${SELECT_LIMIT}`,
             style: 'PRIMARY',
           },
           {
@@ -51,25 +51,10 @@ module.exports = {
       },
     ];
 
-    const pokemonApiUrl = 'https://pokeapi.co/api/v2/';
     const pokemonSelectOptions = new Collection();
     const initialSelectIdentifier = 0;
 
-    const constructPokemonOptions = pokemonApiResponse => {
-      const pokemonOptions = [];
-      pokemonApiResponse.results.forEach(pokemon => {
-        const splitPokemonUrl = pokemon.url.split('/');
-        const pokemonNumber = splitPokemonUrl[splitPokemonUrl.length - 2];
-        pokemonOptions.push({
-          label: `#${`${pokemonNumber}`.padStart(3, '0')} - ${pokemon.name}`,
-          value: pokemon.name,
-        });
-      });
-      return pokemonOptions;
-    };
-
-    const initialUrl = `${pokemonApiUrl}pokemon?limit=${variation}&offset=${initialSelectIdentifier}`;
-    const initialPokemon = await fetch(initialUrl).then(res => res.json());
+    const initialPokemon = await PokeAPI.getPokemonList(SELECT_LIMIT, initialSelectIdentifier);
     pokemonSelectOptions.set(initialSelectIdentifier, constructPokemonOptions(initialPokemon));
 
     messageActionRows[1].components[0].options = pokemonSelectOptions.get(initialSelectIdentifier);
@@ -82,27 +67,26 @@ module.exports = {
           case 'start':
             selectOptionsIdentifier = paginator.initialIdentifiers.selectOptionsIdentifier;
             break;
-          case `-${variation}`:
+          case `-${SELECT_LIMIT}`:
             selectOptionsIdentifier -= 1;
             break;
-          case `+${variation}`:
+          case `+${SELECT_LIMIT}`:
             selectOptionsIdentifier += 1;
             break;
           case 'end':
-            selectOptionsIdentifier = maxSelectIdentifiers - 1;
+            selectOptionsIdentifier = MAX_SELECTIONS - 1;
             break;
         }
 
         if (selectOptionsIdentifier < 0) {
-          selectOptionsIdentifier = maxSelectIdentifiers + (selectOptionsIdentifier % maxSelectIdentifiers);
-        } else if (selectOptionsIdentifier >= maxSelectIdentifiers) {
-          selectOptionsIdentifier %= maxSelectIdentifiers;
+          selectOptionsIdentifier = MAX_SELECTIONS + (selectOptionsIdentifier % MAX_SELECTIONS);
+        } else if (selectOptionsIdentifier >= MAX_SELECTIONS) {
+          selectOptionsIdentifier %= MAX_SELECTIONS;
         }
 
         if (!pokemonSelectOptions.has(selectOptionsIdentifier)) {
-          const limit = selectOptionsIdentifier === maxSelectIdentifiers - 1 ? 1 : variation;
-          const url = `${pokemonApiUrl}pokemon?limit=${limit}&offset=${selectOptionsIdentifier * variation}`;
-          const pokemon = await fetch(url).then(res => res.json());
+          const limit = selectOptionsIdentifier === MAX_SELECTIONS - 1 ? 1 : SELECT_LIMIT;
+          const pokemon = await PokeAPI.getPokemonList(limit, selectOptionsIdentifier * SELECT_LIMIT);
           pokemonSelectOptions.set(selectOptionsIdentifier, constructPokemonOptions(pokemon));
         }
 
@@ -124,7 +108,7 @@ module.exports = {
       const { pageIdentifier: currentPageIdentifier } = currentIdentifiers;
       if (newPageIdentifier !== currentPageIdentifier) {
         // Pokemon name
-        const pokemonResult = await fetch(`${pokemonApiUrl}pokemon/${newPageIdentifier}`).then(res => res.json());
+        const pokemonResult = await PokeAPI.getPokemon(newPageIdentifier);
         const newEmbed = new MessageEmbed()
           .setTitle(`Pokedex #${`${pokemonResult.id}`.padStart(3, '0')} - ${newPageIdentifier}`)
           .setDescription(`Viewing ${newPageIdentifier}`)
@@ -148,12 +132,12 @@ module.exports = {
       const { selectOptionsIdentifier: newSelectOptionsIdentifier } = newIdentifiers;
       if (currentSelectOptionsIdentifier !== newSelectOptionsIdentifier) {
         paginator.getComponent(1, 0).options = pokemonSelectOptions.get(newSelectOptionsIdentifier);
-        if (newSelectOptionsIdentifier === maxSelectIdentifiers - 1) {
+        if (newSelectOptionsIdentifier === MAX_SELECTIONS - 1) {
           paginator.getComponent(1, 0).placeholder = `Currently viewing #151 - #151`;
         } else {
           paginator.getComponent(1, 0).placeholder = `Currently viewing #${`${
-            newSelectOptionsIdentifier * variation + 1
-          }`.padStart(3, '0')} - #${`${newSelectOptionsIdentifier * variation + variation}`.padStart(3, '0')}`;
+            newSelectOptionsIdentifier * SELECT_LIMIT + 1
+          }`.padStart(3, '0')} - #${`${newSelectOptionsIdentifier * SELECT_LIMIT + SELECT_LIMIT}`.padStart(3, '0')}`;
         }
       }
     };
@@ -185,7 +169,6 @@ module.exports = {
       shouldChangePage,
     })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
-      .on(PaginatorEvents.PAGINATION_END, basicEndHandler)
       .on(PaginatorEvents.BEFORE_PAGE_CHANGED, handleBeforePageChanged)
       .on(PaginatorEvents.PAGINATION_END, endHandler);
     await actionRowPaginator.send();
