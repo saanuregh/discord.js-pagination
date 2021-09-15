@@ -1,34 +1,62 @@
 'use strict';
-
-const { MessageActionRow } = require('discord.js');
+const { MessageActionRow, Util } = require('discord.js');
 const BasePaginator = require('./BasePaginator');
+const ActionRowPaginatorOptions = require('../util/ActionRowPaginatorOptions');
 
 class ActionRowPaginator extends BasePaginator {
-  constructor(interaction, pages, options) {
-    super(interaction, pages, options);
+  constructor(interaction, options) {
+    super(interaction, Util.mergeDefault(ActionRowPaginatorOptions.createDefault(), options));
+
+    if (typeof options.messageActionRows !== 'object' || options.messageActionRows.length === 0) {
+      throw new Error('messageActionRows is not defined or is empty');
+    }
 
     Object.defineProperty(this, 'customIdPrefix', { value: this.options.customIdPrefix });
     Object.defineProperty(this, 'customIdSuffix', { value: interaction.id });
+    Object.defineProperty(this, 'messageActionRows', { value: [] });
 
-    this.messageActionRow = new MessageActionRow({
-      type: 'ACTION_ROW',
-      customId: this._generateCustomId('action-row'),
+    options.messageActionRows.forEach((messageActionRowData, messageRowIndex) => {
+      messageActionRowData.type = 'ACTION_ROW';
+      if (messageActionRowData.components) {
+        messageActionRowData.components.forEach(component => {
+          const { type, customId } = component;
+          switch (type) {
+            case 'SELECT_MENU':
+              component.customId = component.customId
+                ? this._generateCustomId(component.customId)
+                : this._generateCustomId(`select-menu-${messageRowIndex}`);
+              break;
+            case 'BUTTON':
+              component.customId = component.customId
+                ? this._generateCustomId(customId)
+                : this._generateCustomId(component.label);
+              if (!component.style) component.style = 'PRIMARY';
+              break;
+          }
+        });
+      }
+      this.messageActionRows.push(new MessageActionRow(messageActionRowData));
     });
+
+    if (this.useCache) {
+      this.pages.forEach((value, key) => {
+        this.pages.set(key, { ...this.messageOptionComponents, ...value });
+      });
+    }
   }
 
   _createCollector() {
-    return this.message.createMessageComponentCollector(this.collectorFilterOptions);
+    return this.message.createMessageComponentCollector(this.collectorOptions);
   }
 
   getCollectorArgs(args) {
     const [interaction] = args;
-    return { interaction, paginator: this };
+    return super.getCollectorArgs({ interaction });
   }
 
-  _collectorFilter(...args) {
-    const [interaction] = args;
+  _collectorFilter(interaction) {
     if (interaction.customId.startsWith(this.customIdPrefix) && interaction.customId.endsWith(this.customIdSuffix)) {
-      return super._collectorFilter(...args);
+      return super._collectorFilter(interaction);
     }
     return false;
   }
@@ -38,8 +66,33 @@ class ActionRowPaginator extends BasePaginator {
     super._collectStart(args);
   }
 
-  get currentPageMessageOptions() {
-    return { ...super.currentPageMessageOptions, components: [this.messageActionRow] };
+  async _resolveMessageOptions({ changePageArgs }) {
+    const messageOptions = await super._resolveMessageOptions({
+      messageOptions: this.messageOptionComponents,
+      changePageArgs,
+    });
+    return messageOptions;
+  }
+
+  getMessageActionRow(row = 0) {
+    return this.getComponent(row);
+  }
+
+  getComponent(row = 0, index = -1) {
+    if (
+      typeof this.currentPageMessageOptions === 'undefined' ||
+      row < 0 ||
+      row >= this.currentPageMessageOptions.components.length
+    ) {
+      return null;
+    }
+    if (index < 0) return this.currentPageMessageOptions.components[row];
+    if (index >= this.currentPageMessageOptions.components[row].components.length) return null;
+    return this.currentPageMessageOptions.components[row].components[index];
+  }
+
+  get messageOptionComponents() {
+    return { components: this.messageActionRows };
   }
 
   _generateCustomId(label) {

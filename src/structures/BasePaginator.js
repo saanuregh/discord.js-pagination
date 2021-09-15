@@ -1,57 +1,74 @@
 'use strict';
 
 const EventEmitter = require('events');
+const { Collection } = require('discord.js');
 const PaginatorEvents = require('../util/PaginatorEvents');
 
 class BasePaginator extends EventEmitter {
-  constructor(interaction, pages, options) {
+  constructor(interaction, options) {
     super();
 
     if (typeof interaction === 'undefined') {
-      throw new Error('The received interaction is undefined.');
+      throw new Error('The received interaction is undefined');
     }
     if (typeof interaction.channel === 'undefined') {
-      throw new Error('The received interaction does not have a valid channel.');
-    }
-    if (typeof pages === 'undefined' || pages.length === 0) {
-      throw new Error('pages is undefined or empty, must be a list of MessageEmbeds');
+      throw new Error('The received interaction does not have a valid channel');
     }
     if (typeof options.messageSender !== 'function') {
       throw new Error('messageSender must be a function');
+    }
+    if (typeof options.pageEmbedResolver === 'undefined') {
+      if (typeof options.useCache === 'boolean' && !options.useCache) {
+        throw new Error('pageEmbedResolver must be provided if useCache is false');
+      }
+      if (typeof options.pages === 'undefined' || options.pages.length === 0) {
+        throw new Error('pages must be provided if not using a pageEmbedResolver');
+      }
     }
 
     Object.defineProperty(this, 'client', { value: interaction.client });
     Object.defineProperty(this, 'user', { value: interaction.user });
     Object.defineProperty(this, 'channel', { value: interaction.channel });
     Object.defineProperty(this, 'interaction', { value: interaction });
+    Object.defineProperty(this, 'pages', { value: new Collection() });
 
-    this.pages = pages;
-    this.messageSender = options.messageSender;
     this.options = options;
-    this.collectorFilter = options.collectorFilter;
-    this.pageResolver = options.pageResolver;
-    this.shouldChangePage = options.shouldChangePage;
-    this.footerResolver = options.footerResolver;
-    this.startingIndex = options.startingIndex;
+    this.messageSender = options.messageSender;
+    this.collectorOptions = options.collectorOptions;
+    this.identifiersResolver = options.identifiersResolver;
+    this.pageEmbedResolver = options.pageEmbedResolver;
+    this.messageOptionsResolver = options.messageOptionsResolver;
+    this.shouldChangePage = options.shouldChangePage || null;
+    this.footerResolver = options.footerResolver || null;
+    this.initialIdentifiers = options.initialIdentifiers;
+    this.currentIdentifiers = {};
+    this.useCache = typeof options.useCache === 'boolean' ? options.useCache : true;
+    this.maxPageCache = options.maxPageCache;
+    // If using cache and no embed resolver, pages can infer max number of pages.
+    if (this.useCache && typeof this.pageEmbedResolver !== 'function') {
+      this.maxNumberOfPages = this.options.pages.length;
+    } else {
+      this.maxNumberOfPages = options.maxNumberOfPages;
+    }
+
+    if (this.useCache && options.pages && options.pages.length > 0) {
+      const { pages } = options;
+      pages.forEach((page, pageIndex) => {
+        this.pages.set(pageIndex, page);
+      });
+    }
   }
 
   _createCollector() {
     throw new Error('_createCollector has not been implemented');
   }
 
-  getCollectorArgs() {
-    throw new Error('getCollectorArgs has not been implements.');
+  getCollectorArgs(args) {
+    return { ...args, paginator: this };
   }
 
   _collectorFilter(...args) {
-    return this.collectorFilter(this.getCollectorArgs(args));
-  }
-
-  get collectorFilterOptions() {
-    return {
-      ...this.options,
-      filter: this._collectorFilter.bind(this),
-    };
+    return this._collectorOptions.filter(this.getCollectorArgs(args));
   }
 
   _handleCollectEnd(collected, reason) {
@@ -59,8 +76,26 @@ class BasePaginator extends EventEmitter {
     this.removeAllListeners();
   }
 
-  async _resolveFooter() {
-    if (this.footerResolver) this.currentPage.setFooter(await this.footerResolver(this));
+  async _resolvePageEmbed(changePageArgs) {
+    const {
+      newIdentifiers: { pageIdentifier },
+    } = changePageArgs;
+    let newPage = await this.pageEmbedResolver(changePageArgs);
+    if (this.useCache) {
+      if (this.pages.size >= this.maxPageCache) {
+        this.pages.clear();
+      }
+      this.pages.set(pageIdentifier, newPage);
+    }
+    return newPage;
+  }
+
+  async _resolveMessageOptions({ messageOptions = {}, changePageArgs }) {
+    if (typeof this.messageOptionsResolver === 'function') {
+      const customMessageOptions = await this.messageOptionsResolver(changePageArgs);
+      return { ...messageOptions, ...customMessageOptions, embeds: [this.currentPage] };
+    }
+    return { ...messageOptions, embeds: [this.currentPage] };
   }
 
   _postSetup() {
@@ -80,18 +115,39 @@ class BasePaginator extends EventEmitter {
     this.emit(PaginatorEvents.COLLECT_END, args);
   }
 
+  async _resolveCurrentPage(changePageArgs) {
+    const { newIdentifiers, currentIdentifiers } = changePageArgs;
+    if (this.useCache && this.pages.has(newIdentifiers.pageIdentifier)) {
+      this.currentPage = this.pages.get(newIdentifiers.pageIdentifier);
+    } else {
+      this.currentPage = await this._resolvePageEmbed(changePageArgs);
+    }
+    if (typeof this.footerResolver === 'function') {
+      this.currentPage.setFooter(await this.footerResolver(this));
+    }
+    this.previousIdentifiers = currentIdentifiers;
+    this.currentIdentifiers = newIdentifiers;
+  }
+
   async send() {
     if (this._isSent) return;
-    this.currentPageIndex = this.startingIndex;
+    const changePageArgs = {
+      newIdentifiers: this.initialIdentifiers,
+      currentIdentifiers: {},
+      paginator: this,
+    };
 
-    await this._resolveFooter();
-    this.message = await this.messageSender(this);
+    await this._resolveCurrentPage(changePageArgs);
+
+    const messageOptions = await this._resolveMessageOptions({ changePageArgs });
+    this.currentPageMessageOptions = messageOptions;
+    this.message = await this.messageSender({ interaction: this.interaction, messageOptions, paginator: this });
+    Object.defineProperty(this, '_isSent', { value: true });
     this.collector = this._createCollector();
 
     this.collector.on('collect', this._handleCollect.bind(this));
     this.collector.on('end', this._handleCollectEnd.bind(this));
     await this._postSetup();
-    Object.defineProperty(this, '_isSent', { value: true });
   }
 
   async _handleCollect(...args) {
@@ -100,11 +156,12 @@ class BasePaginator extends EventEmitter {
     try {
       const collectorArgs = this.getCollectorArgs(args);
       await this._collectStart(collectorArgs);
-      const newPageIndex = await this.pageResolver(collectorArgs);
+      const newIdentifiers = await this.identifiersResolver(collectorArgs);
       const changePageArgs = {
-        ...collectorArgs,
-        newPageIndex,
-        currentPageIndex: this.currentPageIndex,
+        collectorArgs,
+        previousIdentifiers: this.previousIdentifiers,
+        currentIdentifiers: this.currentIdentifiers,
+        newIdentifiers,
         paginator: this,
       };
       // Guard against a message deletion in the page resolver.
@@ -119,57 +176,40 @@ class BasePaginator extends EventEmitter {
 
   async changePage(changePageArgs) {
     if (await this._shouldChangePage(changePageArgs)) {
-      this._previousPageIndex = this.currentPageIndex;
-      this.currentPageIndex = changePageArgs.newPageIndex;
-      await this._resolveFooter();
+      await this._resolveCurrentPage(changePageArgs);
       this.emit(PaginatorEvents.BEFORE_PAGE_CHANGED, changePageArgs);
-      await this.message.edit(this.currentPageMessageOptions);
+      const messageOptions = await this._resolveMessageOptions({ changePageArgs });
+      this.currentPageMessageOptions = messageOptions;
+      await this.message.edit(messageOptions);
       this.emit(PaginatorEvents.PAGE_CHANGED, changePageArgs);
     } else {
-      this.emit(PaginatorEvents.PAGE_UNCHANGED);
+      this.emit(PaginatorEvents.PAGE_UNCHANGED, changePageArgs);
     }
   }
 
   get notSent() {
-    return !!this._isSent;
+    return typeof this._isSent !== 'boolean' || !this._isSent;
   }
 
-  get numberOfPages() {
-    return this.pages.length;
+  get numberOfKnownPages() {
+    if (this.useCache) return this.pages.size;
+    else return this.maxNumberOfPages;
   }
 
-  get previousPageIndex() {
-    return this._previousPageIndex || -1;
+  get collectorOptions() {
+    return {
+      ...this._collectorOptions,
+      filter: this._collectorFilter.bind(this),
+    };
   }
 
-  get currentPageIndex() {
-    return this._currentPageIndex;
+  set collectorOptions(options) {
+    this._collectorOptions = options;
   }
 
-  set currentPageIndex(pageIndex) {
-    // eslint-disable-next-line no-extra-boolean-cast
-    if (pageIndex === undefined) return;
-
-    if (pageIndex < 0) this._currentPageIndex = this.numberOfPages + (pageIndex % this.numberOfPages);
-    else if (pageIndex >= this.numberOfPages) this._currentPageIndex = pageIndex % this.numberOfPages;
-    else this._currentPageIndex = pageIndex;
-  }
-
-  get currentPage() {
-    return this.pages[this.currentPageIndex];
-  }
-
-  get currentPageMessageOptions() {
-    return { embeds: [this.currentPage] };
-  }
-
-  get startingIndex() {
-    if (this._startingIndex === undefined) return 0;
-    return this._startingIndex;
-  }
-
-  set startingIndex(startingIndex) {
-    this._startingIndex = startingIndex;
+  setPage(pageIdentifier, pageEmbed) {
+    this.pages.set(pageIdentifier, pageEmbed);
+    return this;
   }
 
   setMessageSender(messageSender) {
@@ -178,12 +218,22 @@ class BasePaginator extends EventEmitter {
   }
 
   setCollectorFilter(collectorFilter) {
-    if (this.notSent) this.collectorFilter = collectorFilter;
+    this.options.filter = collectorFilter;
     return this;
   }
 
-  setPageResolver(pageResolver) {
-    this.pageResolver = pageResolver;
+  setCollectorOptions(collectorOptions) {
+    this.collectorOptions = collectorOptions;
+    return this;
+  }
+
+  setPageIdentifierResolver(pageIdentifierResolver) {
+    this.pageIdentifierResolver = pageIdentifierResolver;
+    return this;
+  }
+
+  setPageEmbedResolver(pageEmbedResolver) {
+    this.pageEmbedResolver = pageEmbedResolver;
     return this;
   }
 
@@ -192,8 +242,8 @@ class BasePaginator extends EventEmitter {
     return this;
   }
 
-  setStartingIndex(startingIndex) {
-    if (this.notSent) this.startingIndex = startingIndex;
+  setInitialIdentifiers(initialIdentifiers) {
+    if (this.notSent) this.initialIdentifiers = initialIdentifiers;
     return this;
   }
 
