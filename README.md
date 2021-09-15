@@ -15,16 +15,27 @@ To see how the example paginations look, checkout the [example bot](example/READ
 - Custom button pagination with the ButtonPaginator (see the example app).
 - Custom select menu pagination with the SelectPaginator (see the example app).
 - If you have a global interaction listener you can ignore paginator interactions by checking: `interaction.customId.startsWith("paginator")` - this prefix is customizable, set it on all of your paginators.
+- Multiple Action Row (combined select and button) pagination!
 
 ### Table of Contents
 - [Installation](#installation)
+- [Updating v3 to v4](#updating)
 - [Basic Usage](#basic-usage)
+- [#Types](#types)
 - [Paginator Properties](#paginator-properties)
 - [Paginator Options](#paginator-options)
 - [Paginator Events](#paginator-events)
 # Installation
 
 * `npm install @psibean/discord.js-pagination`
+
+# Updating
+
+To update from version 3 to version 4 you may want to take a look at the [difference between the two versions](https://github.com/psibean/discord.js-pagination/compare/d08bf8c25a8f6284354acfb2a9b8243a218c984e..55364f3d653df0ddf6967c99f5c08ffc9d3a08d5) in the example app.
+
+However, for SIMPLE cases, you likely just need to move your pages parameter into the options object in the constructor call, see the [basic usage](#basic-usage) below!
+
+If you want to make use of the dynamic embed creation you'll want to learn how to use the `identifiersResolver` and the `pageEmbedResolver`, read their descriptions below and check the example app for further demonstration.
 
 # Basic Usage
 
@@ -92,6 +103,41 @@ const selectPaginator = new SelectPaginator(interaction, pages);
 await selectPaginator.send();
 ```
 
+# Types
+
+## PaginatorIdentifiers
+
+This object is returned by the identifiersResolver and can contain any number of identifiers but at bare minimum it must contain a pageIdentifier.
+
+{ ...args, pageIdentifier: string | number }
+- **args**: Any additional identifiers you wish to use.
+- **pageIdentifier**: Used as a unique identifier to resolve a page
+
+## PaginatorCollectorArgs
+
+{ ...args, paginator }
+- **args**: All arguments provided by the collect listener.
+- **paginator** : This is a reference to the paginator instance.
+
+For the ReactionCollector this is:
+```
+{ reaction, user, paginator }
+```
+
+For ActionRowPaginator, ButtonPaginator and SelectPaginator this is:
+```
+{ interaction, paginator }
+```
+
+## ChangePageArgs
+
+{ collectorArgs, previousIdentifiers, currentIdentifiers, newIdentifiers, paginator }
+- **collectorArgs**: The [PaginatorCollectorArgs](#paginatorcollectorargs) - only in the collect event (not initial send).
+- **previousIdentifiers**: The [PaginatorIdentifiers](#paginatoridentifiers) of the previous page. Empty object if no navigation.
+- **currentIdentifiers**: The [PaginatorIdentifiers](#paginatoridentifiers) of the current page, before changing.
+- **newIdentifiers**: THe [PaginatorIdentifiers](#paginatoridentifiers) of the page to be changed to.
+- **paginator** : This is a reference to the paginator instance.
+
 # Paginator Properties
 
 The paginator has a variety of properties you can acces -and should, especially if you're customising!
@@ -106,13 +152,12 @@ These properties are common to all paginators.
 - **interaction** : The interaction that initiated the instantiation of the paginator.
 - **user** : The user who sent the interaction that instantiated the paginator.
 - **channel** : The channel where the interaction came from, this is also where the paginator message will be sent.
-- **pages** : The cache of PageEmbeds mapped by their respective `pageIdentifier`.
+- **pages** : The cache of MessageEmbeds mapped by their respective `PaginationIdentifiers#pageIdentifier`.
   - If pages are provided in the options of the constructor, this will be all of the pages provided mapped by their index.
-- **initialIdentifiers** : The initial identifiers object provided in the paginator options.
-  - Must contain a `pageIdentifier`
+- **initialIdentifiers** : The initial [PaginatorIdentifiers](#paginatoridentifiers) provided in the paginator options.
 - **numberOfPages** : The number of pages.
-- **previousPageIdentifiers** : The identifiers object from the previous navigation, `null` indicates no page change yet.
-- **currentPageIdentifiers** : The identifiers object of the current page.
+- **previousPageIdentifiers** : The [PaginatorIdentifiers](#paginatoridentifiers) from the previous navigation, `null` indicates no page change yet.
+- **currentPageIdentifiers** : The [PaginatorIdentifiers](#paginatoridentifiers) of the current page.
 - **options** : The options provided to the paginator after merging defaults.
 
 ## ActionRowPaginator Properties
@@ -122,15 +167,11 @@ These properties are common to the `ButtonPaginator` and `SelectPaginator`.
 - **customIdPrefix** : The `customIdPrefix` provided in options. Used to prefix all `MessageComponent#customId`'s.
 - **customIdSuffix** : The `interaction#id`. Used to suffix all `MessageComponent#customId`'s.
 
-###
-
 ## SelectPaginator Properties
 
 These properties are specific to the `SelectPaginator`.
 
 - **selectMenu** : The select menu on the paginator message action row.
-
-###
 
 # Paginator Options
 
@@ -155,17 +196,32 @@ Defaults to:
 		return paginator.interaction.fetchReply();
 	}
 ```
+### pageEmbedResolver
 
+This is used to determine the current pages embed based on the change page args.
+
+(changePageArgs: [ChangePageArgs](#changepageargs)): Promise&lt;MessageEmbed&gt; | MessageEmbed
+
+If using cache this function will only be called if the embed isn't already in the cache and the embed will be added to the cache mapped to it's corresponding `pageIdentifier`.
+
+### useCache
+
+Whether or not embeds should be cached, keyed by their pageIdentifier.
+
+Defaults to true.
+
+### maxPageCache
+
+The maximum number of pages that should be cached. If this number is reached the cache will be emptied before a new page is cached.
+
+Defaults to 100.
 ### messageOptionsResolver
 
 This function is used to determine additional MessageOptions for the page being changed to.
 
-({ collectorArgs, previousIdentifiers, currentIdentifiers, newIdentifiers, paginator }): Promise&lt;MessageOptions&gt; | MessageOptions
-- **collectorArgs**: The paginators collector arguments, only in the collect event (not initial send).
-- **previousIdentifiers**: The identifiers object of the previous page. Empty object if no navigation.
-- **currentIdentifiers**: The identifiers object of the current page, before changing.
-- **newIdentifiers**: THe identifiers object of the page to be changed to.
-- **paginator** : This is a reference to the paginator instance.
+(options: [ChangePageArgs](#changepageargs)): Promise&lt;MessageOptions&gt; | MessageOptions
+
+Defaults to returning an empty object. Optional.
 
 ### collectorOptions
 
@@ -195,13 +251,13 @@ For the ActionRowPaginator, ButtonPaginator and SelectPaginator, defaults to:
 }
 ```
 
-### identifiersResolvers
+### identifiersResolver
 
 This is the function used to determine the new identifiers object based on the interaction that occurred. The object **must** contain a `pageIdentifier` but can otherwise contain anything else.
 
-({ ...*, paginator }): Promise&lt;integer&gt; | integer
-- **...\*** : Includes any args provided by the collect listener.
-- **paginator** : This is a reference to the paginator instance.
+(collectorArgs: [PaginatorCollectorArgs](#paginatorcollectorargs)): Promise&lt;[PaginatorIdentifiers](#paginatoridentifiers)&gt; | [PaginatorIdentifiers](#paginatoridentifiers)
+
+Whatever this function returns will be used as the `newIdentifiers` object for it's collect event.
 
 For the ReactionPaginator, defaults to:
 
@@ -257,17 +313,7 @@ For the SelectPaginator, defaults to:
 
 This is the function used to determine whether or not a page change should occur during a collect event. If not provided, a page change will always occur during a collect event.
 
-({ ...*, newPageIdentifier, currentPageIdentifier, paginator }): Promise&lt;boolean&gt; | boolean
-        
-        previousIdentifiers: this.previousIdentifiers,
-        currentIdentifiers: this.currentIdentifiers,
-        newIdentifiers,
-        paginator: this,
-- **collectorArgs** : The arguments provided by the paginator collector.
-- **previousIdentifiers** : The identifiers for the previous page, if this is the first change, an empty object.
-- **currentIdentifiers** : The identifiers for the current page (to change from), empty at start.
-- **newIdentifiers** : The identifiers for the page to change to.
-- **paginator** : This is a reference to the paginator instance.
+(args: [ChangePageArgs](#changepageargs)): Promise&lt;boolean&gt; | boolean
 
 Defaults to:
 
@@ -283,16 +329,11 @@ This is the function used to set the footer of each page. If not provided the em
 (paginator): Promise&lt;string&gt; | string
 - **paginator** : This is a reference to the paginator instance.
 
-Defaults to:
-
-```js
-	(paginator) =>
-		`Page ${paginator.currentPageIdentifier + 1} / ${paginator.numberOfPages}`
-```
+Defaults to undefined. Optional.
 
 ### initialIdentifiers
 
-This is the starting identifiers object, must contain a pageIdentifier.
+This is the initial [PageIdentifiers](#pageidentifiers) which is passed in as the `newIdentifiers` in the very first send.
 
 ## ReactionPaginator Options
 
@@ -306,7 +347,22 @@ Defaults to: ['⏪', '⏩']
 
 ## ActionRowPaginator Options
 
-These options are common to the `ButtonPaginator` and `SelectPaginator`.
+These options are common to the `ActionRowPaginator`, `ButtonPaginator`, and `SelectPaginator`.
+
+### messageActionRows
+
+An array of messageActionRows (they will have their type set to ACTION_ROW).
+Any components provided up front will have their customId generated.
+
+Defaults to:
+```
+[
+	{
+		type: 'ACTION_ROW',
+		components: [],
+	},
+],
+```
 
 ### customIdPrefix
 
@@ -321,6 +377,7 @@ These options are specific to the `ButtonPaginator`.
 ### buttons
 
 An array of [MessageButtonOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageButtonOptions) which will be added to the paginators action row.
+Can be skipped if you're degining the `ActionRowPaginator#messageActionRows` option. Otherwise these will be added to either the first action row, or added based on a `row` property.
 
 Note:
 - customId is not required, the paginator will update the customId to be: `<prefix>-[<customId>-]<suffix>` 
