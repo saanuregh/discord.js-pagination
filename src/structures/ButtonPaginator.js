@@ -2,25 +2,30 @@
 
 const { Util } = require('discord.js');
 const ActionRowPaginator = require('./ActionRowPaginator');
-const { ButtonPaginatorDefaults } = require('../util/Defaults');
+const ButtonPaginatorOptions = require('../util/ButtonPaginatorOptions');
 
 class ButtonPaginator extends ActionRowPaginator {
-  constructor(interaction, pages, options) {
-    super(interaction, pages, Util.mergeDefault(ButtonPaginatorDefaults, options));
-
-    if (typeof options.buttons === 'undefined' || options.buttons.length === 0) {
-      throw new Error('buttons is undefined or empty, must be a list of MessageButtonOptions');
+  constructor(interaction, options) {
+    super(interaction, Util.mergeDefault(ButtonPaginatorOptions.createDefault(), options));
+    // Buttons may also be set via the messageActionRows prop.
+    if (this.options.buttons) {
+      const buttonRows = [[]];
+      for (const button of this.options.buttons) {
+        button.type = 'BUTTON';
+        button.customId = button.customId
+          ? this._generateCustomId(button.customId)
+          : this._generateCustomId(button.label);
+        if (!button.style) button.style = 'PRIMARY';
+        if (button.row > 0 && button.row < buttonRows.length) {
+          buttonRows[button.row].push(button);
+        } else {
+          buttonRows[0].push(button);
+        }
+      }
+      buttonRows.forEach((row, index) => {
+        this.messageActionRows[index].addComponents(row);
+      });
     }
-
-    for (const button of this.options.buttons) {
-      button.type = 'BUTTON';
-      if (button.customId) button.customId = this._generateCustomId(button.customId);
-      else button.customId = this._generateCustomId(button.label);
-
-      if (!button.style) button.style = 'PRIMARY';
-    }
-
-    this.messageActionRow.addComponents(this.options.buttons);
   }
 }
 

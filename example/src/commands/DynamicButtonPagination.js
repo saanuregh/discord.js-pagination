@@ -1,13 +1,14 @@
 'use strict';
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { MessageEmbed } = require('discord.js');
 const { PaginatorEvents, ButtonPaginator } = require('../../../src');
-const { basicEndHandler, basicErrorHandler, pages } = require('../util/Constants');
+const { basicEndHandler, basicErrorHandler } = require('../util/Constants');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('custom-button-pagination')
-    .setDescription('Replies with a button based pagination!'),
+    .setName('dynamic-button-pagination')
+    .setDescription('Replies with a dynamic button based pagination!'),
   async execute(interaction) {
     const buttons = [
       {
@@ -65,18 +66,26 @@ module.exports = {
       return { ...paginator.currentIdentifiers, pageIdentifier };
     };
 
+    const pageEmbedResolver = ({ newIdentifiers, paginator }) => {
+      const newPageEmbed = new MessageEmbed();
+      newPageEmbed
+        .setTitle(`This embed is index ${newIdentifiers.pageIdentifier}!`)
+        .setDescription(`That means it is page #${newIdentifiers.pageIdentifier + 1}`);
+      newPageEmbed.setFooter(`Page ${newIdentifiers.pageIdentifier + 1} / ${paginator.maxNumberOfPages}`);
+      return newPageEmbed;
+    };
+
     const buttonPaginator = new ButtonPaginator(interaction, {
-      pages,
       buttons,
       identifiersResolver,
+      pageEmbedResolver,
+      maxNumberOfPages: 10,
     })
       .on(PaginatorEvents.PAGINATION_READY, async paginator => {
-        for (const actionRow of paginator.messageActionRows) {
-          for (const button of actionRow.components) {
-            button.disabled = false;
-          }
+        for (const button of paginator.getMessageActionRow(0).components) {
+          button.disabled = false;
         }
-        await paginator.message.edit(paginator.currentPage);
+        await paginator.message.edit(paginator.currentPageMessageOptions);
       })
       .on(PaginatorEvents.COLLECT_ERROR, basicErrorHandler)
       .on(PaginatorEvents.PAGINATION_END, basicEndHandler);

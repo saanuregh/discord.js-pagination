@@ -2,11 +2,11 @@
 
 const { Util } = require('discord.js');
 const BasePaginator = require('./BasePaginator');
-const { ReactionPaginatorDefaults } = require('../util/Defaults');
+const ReactionPaginatorOptions = require('../util/ReactionPaginatorOptions');
 
 class ReactionPaginator extends BasePaginator {
-  constructor(interaction, pages, options) {
-    super(interaction, pages, Util.mergeDefault(ReactionPaginatorDefaults, options));
+  constructor(interaction, options) {
+    super(interaction, Util.mergeDefault(ReactionPaginatorOptions.createDefault(), options));
 
     if (typeof options.emojiList === 'undefined' || options.emojiList.length === 0) {
       throw new Error('emojiList is undefined or empty, must be a list of EmojiResolvables');
@@ -16,12 +16,12 @@ class ReactionPaginator extends BasePaginator {
   }
 
   _createCollector() {
-    return this.message.createReactionCollector(this.collectorFilterOptions);
+    return this.message.createReactionCollector(this.collectorOptions);
   }
 
   getCollectorArgs(args) {
     const [reaction, user] = args;
-    return { reaction, user, paginator: this };
+    return super.getCollectorArgs({ reaction, user });
   }
 
   async _postSetup() {

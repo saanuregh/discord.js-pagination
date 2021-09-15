@@ -15,16 +15,27 @@ To see how the example paginations look, checkout the [example bot](example/READ
 - Custom button pagination with the ButtonPaginator (see the example app).
 - Custom select menu pagination with the SelectPaginator (see the example app).
 - If you have a global interaction listener you can ignore paginator interactions by checking: `interaction.customId.startsWith("paginator")` - this prefix is customizable, set it on all of your paginators.
+- Multiple Action Row (combined select and button) pagination!
 
 ### Table of Contents
 - [Installation](#installation)
+- [Updating v3 to v4](#updating)
 - [Basic Usage](#basic-usage)
+- [#Types](#types)
 - [Paginator Properties](#paginator-properties)
 - [Paginator Options](#paginator-options)
 - [Paginator Events](#paginator-events)
 # Installation
 
 * `npm install @psibean/discord.js-pagination`
+
+# Updating
+
+To update from version 3 to version 4 you may want to take a look at the [difference between the two versions](https://github.com/psibean/discord.js-pagination/compare/d08bf8c25a8f6284354acfb2a9b8243a218c984e..55364f3d653df0ddf6967c99f5c08ffc9d3a08d5) in the example app.
+
+However, for SIMPLE cases, you likely just need to move your pages parameter into the options object in the constructor call, see the [basic usage](#basic-usage) below!
+
+If you want to make use of the dynamic embed creation you'll want to learn how to use the `identifiersResolver` and the `pageEmbedResolver`, read their descriptions below and check the example app for further demonstration.
 
 # Basic Usage
 
@@ -54,7 +65,7 @@ This allows pages to be navigated by reacting to a message.
 ```js
 const { PaginatorEvents, ReactionPaginator } = require('@psibean/discord.js-pagination');
 
-const reactionPaginator = new ReactionPaginator(interaction, pages)
+const reactionPaginator = new ReactionPaginator(interaction, { pages })
 	.on(PaginatorEvents.COLLECT_ERROR, ({ error }) => console.log(error));
 await reactionPaginator.send();
 ```
@@ -66,7 +77,7 @@ This allows pages to be navigated by clicking buttons.
 ```js
 const { ButtonPaginator } = require('@psibean/discord.js-pagination');
 
-const buttonPaginator = new ButtonPaginator(interaction, pages);
+const buttonPaginator = new ButtonPaginator(interaction, { pages });
 await buttonPaginator.send();
 ```
 
@@ -74,7 +85,7 @@ await buttonPaginator.send();
 
 This allows pages to be navigated using a select menu.
 
-For the select pagination embed you'll need to supply an array of [MessageSelectOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageSelectOption) to the pagination options via `selectOptions`. By default the pagination will map the value of the provided options to your pages index based on their ordering. Then the page change will be determined by the selected value and this mapping. If you want to map your select options and pages differently you can provide the `pagesMap` ({ selectOptions, paginator }) function which should return a dictionary. You'll then want to provide a custom `pageResolver`.
+For the select pagination embed you'll need to supply an array of [MessageSelectOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageSelectOption) to the pagination options via `selectOptions`. By default the pagination will map the value of the provided options to your pages index based on their ordering. Then the page change will be determined by the selected value and this mapping. If you want to map your select options and pages differently you can provide the `pagesMap` ({ selectOptions, paginator }) function which should return a dictionary. You'll then want to provide a custom `pageIndexResolver`.
 
 ```js
 const { SelectPaginator } = require('@psibean/discord.js-pagination');
@@ -92,6 +103,41 @@ const selectPaginator = new SelectPaginator(interaction, pages);
 await selectPaginator.send();
 ```
 
+# Types
+
+## PaginatorIdentifiers
+
+This object is returned by the identifiersResolver and can contain any number of identifiers but at bare minimum it must contain a pageIdentifier.
+
+{ ...args, pageIdentifier: string | number }
+- **args**: Any additional identifiers you wish to use.
+- **pageIdentifier**: Used as a unique identifier to resolve a page
+
+## PaginatorCollectorArgs
+
+{ ...args, paginator }
+- **args**: All arguments provided by the collect listener.
+- **paginator** : This is a reference to the paginator instance.
+
+For the ReactionCollector this is:
+```
+{ reaction, user, paginator }
+```
+
+For ActionRowPaginator, ButtonPaginator and SelectPaginator this is:
+```
+{ interaction, paginator }
+```
+
+## ChangePageArgs
+
+{ collectorArgs, previousIdentifiers, currentIdentifiers, newIdentifiers, paginator }
+- **collectorArgs**: The [PaginatorCollectorArgs](#paginatorcollectorargs) - only in the collect event (not initial send).
+- **previousIdentifiers**: The [PaginatorIdentifiers](#paginatoridentifiers) of the previous page. Empty object if no navigation.
+- **currentIdentifiers**: The [PaginatorIdentifiers](#paginatoridentifiers) of the current page, before changing.
+- **newIdentifiers**: THe [PaginatorIdentifiers](#paginatoridentifiers) of the page to be changed to.
+- **paginator** : This is a reference to the paginator instance.
+
 # Paginator Properties
 
 The paginator has a variety of properties you can acces -and should, especially if you're customising!
@@ -106,11 +152,12 @@ These properties are common to all paginators.
 - **interaction** : The interaction that initiated the instantiation of the paginator.
 - **user** : The user who sent the interaction that instantiated the paginator.
 - **channel** : The channel where the interaction came from, this is also where the paginator message will be sent.
-- **pages** : The pages provided in the paginator constructor.
-- **startingIndex** : The starting index provided in the paginator options.
+- **pages** : The cache of MessageEmbeds mapped by their respective `PaginationIdentifiers#pageIdentifier`.
+  - If pages are provided in the options of the constructor, this will be all of the pages provided mapped by their index.
+- **initialIdentifiers** : The initial [PaginatorIdentifiers](#paginatoridentifiers) provided in the paginator options.
 - **numberOfPages** : The number of pages.
-- **previousPageIndex** : The index of the previous page, -1 indicates no page change.
-- **currentPageIndex** : The index of the current page.
+- **previousPageIdentifiers** : The [PaginatorIdentifiers](#paginatoridentifiers) from the previous navigation, `null` indicates no page change yet.
+- **currentPageIdentifiers** : The [PaginatorIdentifiers](#paginatoridentifiers) of the current page.
 - **options** : The options provided to the paginator after merging defaults.
 
 ## ActionRowPaginator Properties
@@ -120,15 +167,11 @@ These properties are common to the `ButtonPaginator` and `SelectPaginator`.
 - **customIdPrefix** : The `customIdPrefix` provided in options. Used to prefix all `MessageComponent#customId`'s.
 - **customIdSuffix** : The `interaction#id`. Used to suffix all `MessageComponent#customId`'s.
 
-###
-
 ## SelectPaginator Properties
 
 These properties are specific to the `SelectPaginator`.
 
 - **selectMenu** : The select menu on the paginator message action row.
-
-###
 
 # Paginator Options
 
@@ -142,100 +185,141 @@ All paginators can take the options of their respective collector, see discord.j
 
 The function used to send the intial page, it returns the message.
 
-(paginator): Promise&lt;Message&gt; | Message
-- **paginator** : This is a reference to the paginator instance.
+({ interaction, messageOptions }): Promise&lt;Message&gt; | Message
+- **interaction** : This is a reference to the initial interaction that instantiated the paginator.
+- **messageOptions** : The MessageOptions for the initial page.
 
 Defaults to:
 ```js
-	messageSender: async (paginator) => {
-		await paginator.interaction.editReply(paginator.currentPageMessageOptions);
+	messageSender: async ({ interaction, messageOptions }) => {
+		await paginator.interaction.editReply(messageOptions);
 		return paginator.interaction.fetchReply();
 	}
 ```
+### pageEmbedResolver
 
-### collectorFilter
+This is used to determine the current pages embed based on the change page args.
 
-This is the function used as the paginators collector filter.
+(changePageArgs: [ChangePageArgs](#changepageargs)): Promise&lt;MessageEmbed&gt; | MessageEmbed
 
-({ ...*, paginator }): Promise&lt;boolean&gt; | boolean
-- **...\*** : Includes any args provided by the collect listener.
-- **paginator** : This is a reference to the paginator instance.
+If using cache this function will only be called if the embed isn't already in the cache and the embed will be added to the cache mapped to it's corresponding `pageIdentifier`.
+
+### useCache
+
+Whether or not embeds should be cached, keyed by their pageIdentifier.
+
+Defaults to true.
+
+### maxPageCache
+
+The maximum number of pages that should be cached. If this number is reached the cache will be emptied before a new page is cached.
+
+Defaults to 100.
+### messageOptionsResolver
+
+This function is used to determine additional MessageOptions for the page being changed to.
+
+(options: [ChangePageArgs](#changepageargs)): Promise&lt;MessageOptions&gt; | MessageOptions
+
+Defaults to returning an empty object. Optional.
+
+### collectorOptions
+
+This is the options that will be passed to the collector when it is created.
 
 For the ReactionPaginator, defaults to:
 
 ```js
-	({ reaction, user, paginator }) =>
+{
+	idle: 6e4,
+	filter: ({ reaction, user, paginator }) =>
 		user === paginator.user && paginator.emojiList.includes(reaction.emoji.name) && !user.bot,
+}
 ```
 
-For the ButtonPaginator and SelectPaginator, defaults to:
+For the ActionRowPaginator, ButtonPaginator and SelectPaginator, defaults to:
 
 ```js
-	({ interaction, paginator }) =>
-		interaction.user === paginator.user && !interaction.user.bot
+{
+	idle: 6e4,
+	filter: ({ interaction, paginator }) =>
+		interaction.isMessageComponent() &&
+		interaction.component.customId.startsWith(paginator.customIdPrefix) &&
+		interaction.user === paginator.user &&
+		!interaction.user.bot,
+	},
+}
 ```
 
-**Note: For these last two interactions will only be handled if the incoming `Interaction#customId` starts with a matching `ActionRowPaginator#customIdPrefix` and ends with a matching `ActionRowPaginator#customIdSuffix`.**
+### identifiersResolver
 
-### pageResolver
+This is the function used to determine the new identifiers object based on the interaction that occurred. The object **must** contain a `pageIdentifier` but can otherwise contain anything else.
 
-This is the function used to determine what page to change to during a collect event, it should return the index of the new page.
+(collectorArgs: [PaginatorCollectorArgs](#paginatorcollectorargs)): Promise&lt;[PaginatorIdentifiers](#paginatoridentifiers)&gt; | [PaginatorIdentifiers](#paginatoridentifiers)
 
-({ ...*, paginator }): Promise&lt;integer&gt; | integer
-- **...\*** : Includes any args provided by the collect listener.
-- **paginator** : This is a reference to the paginator instance.
+Whatever this function returns will be used as the `newIdentifiers` object for it's collect event.
 
 For the ReactionPaginator, defaults to:
 
 ```js
-	({ reaction, paginator }) => {
-		switch (reaction.emoji.name) {
-			case paginator.emojiList[0]:
-				return paginator.currentPageIndex - 1;
-			case paginator.emojiList[1]:
-				return paginator.currentPageIndex + 1;
-			default:
-				return paginator.currentPageIndex;
-		}
+({ reaction, paginator }) => {
+	let { pageIdentifier } = paginator.currentIdentifiers;
+	switch (reaction.emoji.name) {
+		case paginator.emojiList[0]:
+			pageIdentifier -= 1;
+			break;
+		case paginator.emojiList[1]:
+			pageIdentifier += 1;
+			break;
+	}
+	// The default identifier is a cyclic index.
+	if (pageIdentifier < 0) {
+		pageIdentifier = paginator.maxNumberOfPages + (pageIdentifier % paginator.maxNumberOfPages);
+	} else if (pageIdentifier >= paginator.maxNumberOfPages) {
+		pageIdentifier %= paginator.maxNumberOfPages;
+	}
+	return { ...paginator.currentIdentifiers, pageIdentifier };
+}
 ```
 
 For the ButtonPaginator, defaults to:
 
 ```js
-	({ interaction, paginator }) => {
-		const val = interaction.customId.toLowerCase();
-		if (val.includes('prev'))
-			return paginator.currentPageIndex - 1;
-		else if (val.includes('next'))
-			return paginator.currentPageIndex + 1;
-		return paginator.currentPageIndex;
+({ interaction, paginator }) => {
+	const val = interaction.component.label.toLowerCase();
+	let { pageIdentifier } = paginator.currentIdentifiers;
+	if (val === 'previous') pageIdentifier -= 1;
+	else if (val === 'next') pageIdentifier += 1;
+	// The default identifier is a cyclic index.
+	if (pageIdentifier < 0) {
+		pageIdentifier = paginator.maxNumberOfPages + (pageIdentifier % paginator.maxNumberOfPages);
+	} else if (pageIdentifier >= paginator.maxNumberOfPages) {
+		pageIdentifier %= paginator.maxNumberOfPages;
 	}
+	return { ...paginator.currentIdentifiers, pageIdentifier };
+}
 ```
 
 For the SelectPaginator, defaults to:
 
 ```js
-	({ interaction, paginator }) => {
-		const [selectedValue] = interaction.values;
-		return paginator.pagesMap[selectedValue];
-	}
+({ interaction, paginator }) => {
+	const [selectedValue] = interaction.values;
+	return { ...paginator.currentIdentifiers, pageIdentifier: parseInt(selectedValue) };
+},
 ```
 
 ### shouldChangePage
 
 This is the function used to determine whether or not a page change should occur during a collect event. If not provided, a page change will always occur during a collect event.
 
-({ ...*, newPageIndex, currentPageIndex, paginator }): Promise&lt;boolean&gt; | boolean
-- **...\*** : Includes any args provided by the collect listener.
-- **newPageIndex** : This is the index of the page being changed to.
-- **currentPageIndex** : This is the index of the current page (before being changed).
-- **paginator** : This is a reference to the paginator instance.
+(args: [ChangePageArgs](#changepageargs)): Promise&lt;boolean&gt; | boolean
 
 Defaults to:
 
 ```js
-	({ newPageIndex, previousPageIndex, paginator }) =>
-		!paginator.message.deleted && newPageIndex !== previousPageIndex,
+({ newIdentifiers, currentIdentifiers, paginator }) =>
+		!paginator.message.deleted && newIdentifiers.pageIdentifier !== currentIdentifiers.pageIdentifier,
 ```
 
 ### footerResolver
@@ -245,16 +329,11 @@ This is the function used to set the footer of each page. If not provided the em
 (paginator): Promise&lt;string&gt; | string
 - **paginator** : This is a reference to the paginator instance.
 
-Defaults to:
+Defaults to undefined. Optional.
 
-```js
-	(paginator) =>
-		`Page ${paginator.currentPageIndex + 1} / ${paginator.numberOfPages}`
-```
+### initialIdentifiers
 
-### startingIndex
-
-This is the index of the page to start at, defaults to 0 if not provided or invalid.
+This is the initial [PageIdentifiers](#pageidentifiers) which is passed in as the `newIdentifiers` in the very first send.
 
 ## ReactionPaginator Options
 
@@ -268,7 +347,22 @@ Defaults to: ['⏪', '⏩']
 
 ## ActionRowPaginator Options
 
-These options are common to the `ButtonPaginator` and `SelectPaginator`.
+These options are common to the `ActionRowPaginator`, `ButtonPaginator`, and `SelectPaginator`.
+
+### messageActionRows
+
+An array of messageActionRows (they will have their type set to ACTION_ROW).
+Any components provided up front will have their customId generated.
+
+Defaults to:
+```
+[
+	{
+		type: 'ACTION_ROW',
+		components: [],
+	},
+],
+```
 
 ### customIdPrefix
 
@@ -283,6 +377,7 @@ These options are specific to the `ButtonPaginator`.
 ### buttons
 
 An array of [MessageButtonOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageButtonOptions) which will be added to the paginators action row.
+Can be skipped if you're degining the `ActionRowPaginator#messageActionRows` option. Otherwise these will be added to either the first action row, or added based on a `row` property.
 
 Note:
 - customId is not required, the paginator will update the customId to be: `<prefix>-[<customId>-]<suffix>` 
@@ -347,10 +442,10 @@ All paginators have the following events (by EventName):
 
 This event is raised in the paginator collectors collect event before the message is edited with a new page.
 
-Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
+Parameters: ({ ...*, newPageIdentifier, currentPageIdentifier, paginator })
 - **...\*** : Includes any args provided by the collect listener.
-- **newPageIndex** : This is the index of the page being changed to.
-- **currentPageIndex** : This is the index of the current page (before being changed).
+- **newPageIdentifier** : This is the index of the page being changed to.
+- **currentPageIdentifier** : This is the index of the current page (before being changed).
 - **paginator** : This is a reference to the paginator instance.
 
 ### COLLECT_END
@@ -389,13 +484,13 @@ Parameters: ({ error, paginator })
 
 This event is raised in the paginator collectors collect event after the message is edited with a new page
 
-Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
+Parameters: ({ ...*, newPageIdentifier, currentPageIdentifier, paginator })
 - ...* : Includes any args provided by the collect listener.
-- **newPageIndex** : This is the index of the page being changed to.
-- **currentPageIndex** : This is the index of the current page (before being changed).
+- **newPageIdentifier** : This is the index of the page being changed to.
+- **currentPageIdentifier** : This is the index of the current page (before being changed).
 - **paginator** : This is a reference to the paginator instance.
 
-**It should be noted:** `paginator#currentPageIndex`, `paginator#previousPageIndex` and `paginator#currentPage` will now reflect values based on the `newPageIndex`, which is not the case for BEFORE_PAGE_CHANGED.
+**It should be noted:** `paginator#currentPageIdentifier`, `paginator#previousPageIdentifier` and `paginator#currentPage` will now reflect values based on the `newPageIdentifier`, which is not the case for BEFORE_PAGE_CHANGED.
 
 ### PAGE_UNCHANGED
 
@@ -403,10 +498,10 @@ Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
 
 This event is raised in the paginator collectors collect event when `paginator#shouldChangePage` has returned false. For example if the new page index matches the current index, a collect event occurred but did not cause a page change.
 
-Parameters: ({ ...*, newPageIndex, currentPageIndex, paginator })
+Parameters: ({ ...*, newPageIdentifier, currentPageIdentifier, paginator })
 - ...* : Includes any args provided by the collect listener.
-- **newPageIndex** : This is the index of the page being changed to.
-- **currentPageIndex** : This is the index of the current page (before being changed).
+- **newPageIdentifier** : This is the index of the page being changed to.
+- **currentPageIdentifier** : This is the index of the current page (before being changed).
 - **paginator** : This is a reference to the paginator instance.
 
 ### PAGINATION_END
