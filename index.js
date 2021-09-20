@@ -1,4 +1,4 @@
-const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout = 120000, edit = false) => {
+const paginationEmbed = async (msg, author, pages, emojiList = ['⏪', '⏩'], timeout = 120000, edit = false) => {
 	if (!msg && !msg.channel) throw new Error('Channel is inaccessible.');
 	if (!pages) throw new Error('Pages are not given.');
 	if (emojiList.length !== 2) throw new Error('Need two emojis.');
@@ -10,7 +10,7 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 		{ time: timeout }
 	);
 	reactionCollector.on('collect', reaction => {
-		reaction.users.remove(msg.author);
+		reaction.users.remove(author);
 		switch (reaction.emoji.name) {
 			case emojiList[0]:
 				page = page > 0 ? --page : pages.length - 1;
