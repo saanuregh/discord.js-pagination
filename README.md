@@ -21,7 +21,7 @@ To see how the example paginations look, checkout the [example bot](example/READ
 - [Installation](#installation)
 - [Updating v3 to v4](#updating)
 - [Basic Usage](#basic-usage)
-- [#Types](#types)
+- [Types](#types)
 - [Paginator Properties](#paginator-properties)
 - [Paginator Options](#paginator-options)
 - [Paginator Events](#paginator-events)
@@ -40,6 +40,8 @@ If you want to make use of the dynamic embed creation you'll want to learn how t
 # Basic Usage
 
 For all paginators, the default `messageSender` will call `interaction#editReply` then return `interaction#fetchReply`, this means your command (as per the example bot) must call `interaction#deferReply`.
+
+You should use `interaction#deferReply` when you receive an interaction that will send an embed. The paginators default `messageSender` uses `interaction#editReply`. If you do not wish to do this you'll need to pass in your own `messageSender`.
 
 For the below examples, the pages can be constructed as per the [example bot](example/README.md):
 
