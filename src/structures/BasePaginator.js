@@ -38,8 +38,8 @@ class BasePaginator extends EventEmitter {
     this.identifiersResolver = options.identifiersResolver;
     this.pageEmbedResolver = options.pageEmbedResolver;
     this.messageOptionsResolver = options.messageOptionsResolver;
-    this.shouldChangePage = options.shouldChangePage || null;
-    this.footerResolver = options.footerResolver || null;
+    this.shouldChangePage = options.shouldChangePage ?? null;
+    this.footerResolver = options.footerResolver ?? null;
     this.initialIdentifiers = options.initialIdentifiers;
     this.currentIdentifiers = {};
     this.useCache = typeof options.useCache === 'boolean' ? options.useCache : true;
