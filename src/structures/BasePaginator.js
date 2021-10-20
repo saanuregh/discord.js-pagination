@@ -180,11 +180,15 @@ class BasePaginator extends EventEmitter {
       this.emit(PaginatorEvents.BEFORE_PAGE_CHANGED, changePageArgs);
       const messageOptions = await this._resolveMessageOptions({ changePageArgs });
       this.currentPageMessageOptions = messageOptions;
-      await this.message.edit(messageOptions);
+      await this.editMessage({ changePageArgs, messageOptions });
       this.emit(PaginatorEvents.PAGE_CHANGED, changePageArgs);
     } else {
       this.emit(PaginatorEvents.PAGE_UNCHANGED, changePageArgs);
     }
+  }
+
+  editMessage({ messageOptions }) {
+    return this.message.edit(messageOptions);
   }
 
   get notSent() {
