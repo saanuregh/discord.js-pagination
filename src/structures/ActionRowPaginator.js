@@ -66,6 +66,10 @@ class ActionRowPaginator extends BasePaginator {
     super._collectStart(args);
   }
 
+  editMessage({ changePageArgs, messageOptions }) {
+    return changePageArgs.collectorArgs.interaction.editReply(messageOptions);
+  }
+
   async _resolveMessageOptions({ changePageArgs }) {
     const messageOptions = await super._resolveMessageOptions({
       messageOptions: this.messageOptionComponents,

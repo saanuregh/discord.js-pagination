@@ -2,8 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
 const { Client, Intents, Collection } = require('discord.js');
 const config = require('../config');
 
@@ -29,21 +27,38 @@ for (const file of commandFiles) {
   commands.push(command.data.toJSON());
 }
 
-const rest = new REST({ version: '9' }).setToken(config.BOT_TOKEN);
-
 client.once('ready', () => {
   console.log('Ready!');
-  (async () => {
-    try {
-      console.log('Started refreshing application (/) commands.');
+  try {
+    console.log('Started refreshing application (/) commands.');
+    for (const guild of client.guilds.cache.values()) {
+      guild.commands
+        .fetch()
+        .then(guildCommands => {
+          if (guildCommands.size === 0) {
+            return guild.commands.set(commands);
+          } else {
+            for (const command of commands) {
+              if (!guildCommands.some(val => val.name === command.name)) {
+                guild.commands.create(command).then(createdCommand => {
+                  console.log(`Created ${createdCommand.name} for ${guild.id}`);
+                });
+              }
+            }
 
-      await rest.put(Routes.applicationGuildCommands(config.CLIENT_ID, config.GUILD_ID), { body: commands });
-
-      console.log('Successfully reloaded application (/) commands.');
-    } catch (error) {
-      console.error(error);
+            return guildCommands;
+          }
+        })
+        .catch(error => {
+          console.log(`Error while fetching guild commands... ${guild.id}`);
+          console.log(error);
+        });
     }
-  })();
+
+    console.log('Successfully reloaded application (/) commands.');
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 client.on('interactionCreate', async interaction => {
@@ -54,7 +69,7 @@ client.on('interactionCreate', async interaction => {
   if (!client.commands.has(commandName)) return;
 
   try {
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
     await client.commands.get(commandName).execute(interaction);
   } catch (error) {
     console.error(error);
