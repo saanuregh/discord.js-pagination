@@ -1,10 +1,11 @@
 {
   "name": "discord-paginate",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "A simple utility to paginate discord embeds. ",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepublish": "git commit -a",
+    "postpublish": "git push"
   },
   "repository": {
     "type": "git",
