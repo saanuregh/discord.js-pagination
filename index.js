@@ -1,4 +1,12 @@
-const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout = 120000) => {
+import { MessageEmbed, Message } from 'discord.js';
+/**
+ * @name paginationEmbed
+ * @description Create a paginiation embed off of a list of embeds
+ * @param {Message} msg
+ * @param {MessageEmbed[]} pages
+ * @returns {int} current page
+*/
+export async function paginationEmbed(msg, pages, emojiList = ['⏪', '⏩'], timeout = 120000) {
 	if (!msg && !msg.channel) throw new Error('Channel is inaccessible.');
 	if (!pages) throw new Error('Pages are not given.');
 	if (emojiList.length !== 2) throw new Error('Need two emojis.');
@@ -30,4 +38,17 @@ const paginationEmbed = async (msg, pages, emojiList = ['⏪', '⏩'], timeout =
 	});
 	return curPage;
 };
-module.exports = paginationEmbed;
+
+/**
+ * @name paginateArray
+ * @description Turn arr into an array of arrays the size of limit
+ * @argument {Array} arr
+ * @argument {int} limit
+ */
+export function paginateArray(arr, limit) {
+	let newarray = []
+	while(arr.length) {
+		newarray.push(arr.splice(0, limit))
+	}
+	return newarray
+}

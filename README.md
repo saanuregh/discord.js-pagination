@@ -16,7 +16,7 @@ A simple utility to paginate discord embeds. Built on discord.js@^12.0.0 (master
 __Basic Bot Example__
 ```js
 // Import the discord.js-pagination package
-const paginationEmbed = require('discord.js-pagination');
+const { paginationEmbed } = require('discord.js-pagination');
 
 // Use either MessageEmbed or RichEmbed to make pages
 // Keep in mind that Embeds should't have their footers set since the pagination method sets page info there
@@ -35,7 +35,7 @@ pages = [
 // Call the paginationEmbed method, first two arguments are required
 // emojiList is the pageturners defaults to ['⏪', '⏩']
 // timeout is the time till the reaction collectors are active, after this you can't change pages (in ms), defaults to 120000
-paginationEmbed(msg, pages, emojiList /* optional */, timeout /* optional */);
+paginationEmbed(msg /* D.js Message */, pages /* array of MessageEmbed objects */, emojiList /* optional */, timeout /* optional */);
 // There you go, now you have paged embeds
 ```
 # Preview

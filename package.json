@@ -1,6 +1,6 @@
 {
-  "name": "discord.js-pagination",
-  "version": "1.0.3",
+  "name": "discord-paginate",
+  "version": "2.0.0",
   "description": "A simple utility to paginate discord embeds. ",
   "main": "index.js",
   "scripts": {
@@ -8,16 +8,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/saanuregh/discord.js-pagination.git"
+    "url": "git+https://github.com/maverick-dev-55/discord.js-pagination.git"
   },
   "keywords": [
     "discord.js",
     "pagination"
   ],
-  "author": "saanuregh",
+  "author": "maverickquill55",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/saanuregh/discord.js-pagination/issues"
+    "url": "https://github.com/maverick-dev-55/discord.js-pagination/issues"
   },
-  "homepage": "https://github.com/saanuregh/discord.js-pagination#readme"
+  "homepage": "https://github.com/maverick-dev-55/discord.js-pagination#readme",
+  "dependencies": {
+    "discord.js": "^13.3.1"
+  }
 }
