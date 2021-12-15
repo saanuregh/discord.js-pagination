@@ -1,13 +1,13 @@
 <div align="center">
   <p>
-    <a href="https://nodei.co/npm/discord.js-pagination
-/"><img src="https://nodei.co/npm/discord.js-pagination.png?downloads=true&stars=true" alt="NPM info" /></a>
+    <a href="https://nodei.co/npm/discord-pagination
+/"><img src="https://nodei.co/npm/discord-pagination.png?downloads=true&stars=true" alt="NPM info" /></a>
   </p>
 </div>
 
 
 # discord.js-pagination
-A simple utility to paginate discord embeds. Built on discord.js@^12.0.0 (master) but should work on older versions. Compatible with MessageEmbeds, RichEmbeds (not tested). Pages are embeds.
+A simple utility to paginate discord embeds. Built on discord.js@^13.3.1 (master). Compatible with MessageEmbeds. Pages are embeds.
 
 # Installation
 * `npm install discord.js-pagination`
@@ -32,9 +32,8 @@ pages = [
 	embedn
 ];
 
-// Call the paginationEmbed method, first two arguments are required
-// emojiList is the pageturners defaults to ['⏪', '⏩']
-// timeout is the time till the reaction collectors are active, after this you can't change pages (in ms), defaults to 120000
+// emojiList paramater is for the page-turners, defaults to ['⏪', '⏩']
+// timeout is the duration (in ms) after an interaction where the bot stops accepting interactions, defualts to 120000 (120s or 2m)
 paginationEmbed(msg /* D.js Message */, pages /* array of MessageEmbed objects */, emojiList /* optional */, timeout /* optional */);
 // There you go, now you have paged embeds
 ```
