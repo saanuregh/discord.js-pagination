@@ -17,7 +17,7 @@ module.exports.basicEndHandler = async ({ reason, paginator }) => {
   // This is a basic handler that will delete the message containing the pagination.
   try {
     console.log(`The pagination has ended: ${reason}`);
-    if (!paginator.message.deleted) await paginator.message.delete();
+    if (paginator.message.deletable) await paginator.message.delete();
   } catch (error) {
     console.log('There was an error when deleting the message: ');
     console.log(error);

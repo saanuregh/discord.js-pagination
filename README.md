@@ -321,7 +321,7 @@ Defaults to:
 
 ```js
 ({ newIdentifiers, currentIdentifiers, paginator }) =>
-		!paginator.message.deleted && newIdentifiers.pageIdentifier !== currentIdentifiers.pageIdentifier,
+		paginator.message.deletable && newIdentifiers.pageIdentifier !== currentIdentifiers.pageIdentifier,
 ```
 
 ### footerResolver
