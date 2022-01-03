@@ -7,7 +7,7 @@ class BaseOptions extends null {
       messageSender: ({ interaction, messageOptions }) => interaction.editReply(messageOptions),
       initialIdentifiers: { pageIdentifier: 0 },
       shouldChangePage: ({ newIdentifiers, currentIdentifiers, paginator }) =>
-        !paginator.message.deleted && newIdentifiers.pageIdentifier !== currentIdentifiers.pageIdentifier,
+        paginator.message.deletable && newIdentifiers.pageIdentifier !== currentIdentifiers.pageIdentifier,
       useCache: true,
       collectorOptions: {
         filter: ({ interaction, paginator }) => interaction.user === paginator.user && !interaction.user.bot,

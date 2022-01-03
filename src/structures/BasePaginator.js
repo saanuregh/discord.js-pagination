@@ -165,7 +165,7 @@ class BasePaginator extends EventEmitter {
         paginator: this,
       };
       // Guard against a message deletion in the page resolver.
-      if (!this.message.deleted) {
+      if (this.message.deletable) {
         await this.changePage(changePageArgs);
         await this._collectEnd(collectorArgs);
       }
