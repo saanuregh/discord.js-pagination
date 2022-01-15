@@ -1,7 +1,6 @@
 'use strict';
 
 const { Util } = require('discord.js');
-const { MessageButtonStyles } = require('discord.js/typings/enums');
 const ActionRowPaginator = require('./ActionRowPaginator');
 const ButtonPaginatorOptions = require('../util/ButtonPaginatorOptions');
 
@@ -19,7 +18,8 @@ class ButtonPaginator extends ActionRowPaginator {
             ? this._generateCustomId(button.customId)
             : this._generateCustomId(button.label);
         }
-        if (!button.style) button.style = isLink ? MessageButtonStyles.LINK : MessageButtonStyles.PRIMARY;
+        // LINK : PRIMARY - MessageButtonStyles doesn't work.
+        if (!button.style) button.style = isLink ? 5 : 1;
         if (button.row > 0 && button.row < buttonRows.length) {
           buttonRows[button.row].push(button);
         } else {
