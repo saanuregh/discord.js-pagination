@@ -1,6 +1,6 @@
 {
   "name": "@psibean/discord.js-pagination",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "A simple utility to paginate discord embeds based on discord.js-pagination.",
   "main": "./src/index.js",
   "module": "./src/index.mjs",
