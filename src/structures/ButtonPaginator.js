@@ -11,9 +11,9 @@ class ButtonPaginator extends ActionRowPaginator {
     if (this.options.buttons) {
       const buttonRows = [[]];
       for (const button of this.options.buttons) {
+        button.type = 'BUTTON';
         const isLink = button.url !== undefined;
         if (!isLink) {
-          button.type = 'BUTTON';
           button.customId = button.customId
             ? this._generateCustomId(button.customId)
             : this._generateCustomId(button.label);
