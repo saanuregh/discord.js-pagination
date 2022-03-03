@@ -1,23 +1,48 @@
 {
-  "name": "discord.js-pagination",
-  "version": "1.0.3",
-  "description": "A simple utility to paginate discord embeds. ",
-  "main": "index.js",
+  "name": "@psibean/discord.js-pagination",
+  "version": "4.0.5",
+  "description": "A simple utility to paginate discord embeds based on discord.js-pagination.",
+  "main": "./src/index.js",
+  "module": "./src/index.mjs",
+  "files": [
+    "src"
+  ],
+  "exports": {
+    "./*": "./*",
+    ".": {
+      "require": "./src/index.js",
+      "import": "./src/index.mjs"
+    }
+  },
   "scripts": {
+    "lint": "eslint src",
+    "lint:example": "eslint example",
+    "lint:fix": "eslint src --fix",
+    "lint:fix:example": "eslint example --fix",
+    "prepublishOnly": "gen-esm-wrapper ./src/index.js ./src/index.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/saanuregh/discord.js-pagination.git"
+    "url": "git+https://github.com/psibean/discord.js-pagination.git"
   },
   "keywords": [
     "discord.js",
     "pagination"
   ],
-  "author": "saanuregh",
+  "author": "psibean",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/saanuregh/discord.js-pagination/issues"
+    "url": "https://github.com/psibean/discord.js-pagination/issues"
   },
-  "homepage": "https://github.com/saanuregh/discord.js-pagination#readme"
+  "homepage": "https://github.com/psibean/discord.js-pagination#readme",
+  "devDependencies": {
+    "discord.js": "^13.6.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-prettier": "^3.4.0",
+    "gen-esm-wrapper": "^1.1.2",
+    "prettier": "^2.3.2"
+  }
 }

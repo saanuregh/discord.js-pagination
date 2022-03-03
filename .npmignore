@@ -1,0 +1,6 @@
+node_modules
+example
+.git*
+.vscode
+.eslintrc.json
+.prettierrc.json
