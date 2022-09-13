@@ -26,6 +26,7 @@
     "type": "git",
     "url": "git+https://github.com/psibean/discord.js-pagination.git"
   },
+
   "keywords": [
     "discord.js",
     "pagination"
@@ -37,7 +38,8 @@
   },
   "homepage": "https://github.com/psibean/discord.js-pagination#readme",
   "devDependencies": {
-    "discord.js": "^13.6.0",
+    "discord.js": "^14.3.0",
+    "discord-api-types": "^0.37.9",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.23.4",

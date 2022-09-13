@@ -1,19 +1,18 @@
 'use strict';
 
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
-const myPages = [];
+const pages = [];
 for (let i = 0; i < 10; i++) {
-  const pageEmbed = new MessageEmbed();
-  pageEmbed.setTitle(`This embed is index ${i}!`).setDescription(`That means it is page #${i + 1}`);
-  pageEmbed.setFooter(`Page ${i + 1} / 10`);
-  myPages.push(pageEmbed);
+  const pageEmbed = new EmbedBuilder()
+    .setTitle(`This embed is index ${i}!`)
+    .setDescription(`That means it is page #${i + 1}`)
+    .setFooter({ text: `Page ${i + 1} / 10` });
+    pages.push(pageEmbed);
 }
+const basicErrorHandler = ({ error }) => console.log(error);
 
-module.exports.pages = myPages;
-
-module.exports.basicErrorHandler = ({ error }) => console.log(error);
-module.exports.basicEndHandler = async ({ reason, paginator }) => {
+const basicEndHandler = async ({ reason, paginator }) => {
   // This is a basic handler that will delete the message containing the pagination.
   try {
     console.log(`The pagination has ended: ${reason}`);
@@ -23,3 +22,9 @@ module.exports.basicEndHandler = async ({ reason, paginator }) => {
     console.log(error);
   }
 };
+
+module.exports = {
+  basicEndHandler,
+  basicErrorHandler,
+  pages
+}

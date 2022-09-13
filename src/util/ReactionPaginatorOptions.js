@@ -1,11 +1,11 @@
 'use strict';
 
-const { Util } = require('discord.js');
+const { mergeDefault } = require('discord.js');
 const BaseOptions = require('./BaseOptions');
 
 class ReactionPaginatorOptions extends BaseOptions {
   static createDefault() {
-    return Util.mergeDefault(BaseOptions.createDefault(), {
+    return mergeDefault(BaseOptions.createDefault(), {
       emojiList: ['⏪', '⏩'],
       collectorOptions: {
         filter: ({ reaction, user, paginator }) =>

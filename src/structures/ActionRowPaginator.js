@@ -1,11 +1,12 @@
 'use strict';
-const { MessageActionRow, Util } = require('discord.js');
+const { ActionRowBuilder, mergeDefault, ButtonStyle } = require('discord.js');
+const { ComponentType } = require('discord-api-types/v10');
 const BasePaginator = require('./BasePaginator');
 const ActionRowPaginatorOptions = require('../util/ActionRowPaginatorOptions');
 
 class ActionRowPaginator extends BasePaginator {
   constructor(interaction, options) {
-    super(interaction, Util.mergeDefault(ActionRowPaginatorOptions.createDefault(), options));
+    super(interaction, mergeDefault(ActionRowPaginatorOptions.createDefault(), options));
 
     if (typeof options.messageActionRows !== 'object' || options.messageActionRows.length === 0) {
       throw new Error('messageActionRows is not defined or is empty');
@@ -16,26 +17,26 @@ class ActionRowPaginator extends BasePaginator {
     Object.defineProperty(this, 'messageActionRows', { value: [] });
 
     options.messageActionRows.forEach((messageActionRowData, messageRowIndex) => {
-      messageActionRowData.type = 'ACTION_ROW';
+      messageActionRowData.type = ComponentType.ActionRow;
       if (messageActionRowData.components) {
         messageActionRowData.components.forEach(component => {
           const { type, customId } = component;
           switch (type) {
-            case 'SELECT_MENU':
+            case ComponentType.SelectMenu:
               component.customId = component.customId
                 ? this._generateCustomId(component.customId)
                 : this._generateCustomId(`select-menu-${messageRowIndex}`);
               break;
-            case 'BUTTON':
+            case ComponentType.Button:
               component.customId = component.customId
                 ? this._generateCustomId(customId)
                 : this._generateCustomId(component.label);
-              if (!component.style) component.style = 'PRIMARY';
+              if (!component.style) component.style = ButtonStyle.Primary;
               break;
           }
         });
       }
-      this.messageActionRows.push(new MessageActionRow(messageActionRowData));
+      this.messageActionRows.push(new ActionRowBuilder(messageActionRowData));
     });
 
     if (this.useCache) {

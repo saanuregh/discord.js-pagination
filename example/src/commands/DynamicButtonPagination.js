@@ -1,7 +1,7 @@
 'use strict';
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder, ButtonStyle } = require('discord.js');
 const { PaginatorEvents, ButtonPaginator } = require('../../../src');
 const { basicEndHandler, basicErrorHandler } = require('../util/Constants');
 
@@ -14,7 +14,7 @@ module.exports = {
       {
         label: 'First',
         emoji: '⏪',
-        style: 'SECONDARY',
+        style: ButtonStyle.Secondary,
         disabled: true,
       },
       {
@@ -23,7 +23,7 @@ module.exports = {
       },
       {
         label: 'Delete',
-        style: 'DANGER',
+        style: ButtonStyle.Danger,
         disabled: true,
       },
       {
@@ -33,7 +33,7 @@ module.exports = {
       {
         label: 'Last',
         emoji: '⏩',
-        style: 'SECONDARY',
+        style: ButtonStyle.Secondary,
         disabled: true,
       },
     ];
@@ -67,11 +67,11 @@ module.exports = {
     };
 
     const pageEmbedResolver = ({ newIdentifiers, paginator }) => {
-      const newPageEmbed = new MessageEmbed();
+      const newPageEmbed = new EmbedBuilder();
       newPageEmbed
         .setTitle(`This embed is index ${newIdentifiers.pageIdentifier}!`)
         .setDescription(`That means it is page #${newIdentifiers.pageIdentifier + 1}`);
-      newPageEmbed.setFooter(`Page ${newIdentifiers.pageIdentifier + 1} / ${paginator.maxNumberOfPages}`);
+      newPageEmbed.setFooter({ text: `Page ${newIdentifiers.pageIdentifier + 1} / ${paginator.maxNumberOfPages}` });
       return newPageEmbed;
     };
 

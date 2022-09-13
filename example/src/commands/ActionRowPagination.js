@@ -1,10 +1,10 @@
 'use strict';
 
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { Collection, MessageEmbed } = require('discord.js');
-const { PaginatorEvents, ActionRowPaginator } = require('../../../src');
-const { basicEndHandler, basicErrorHandler } = require('../util/Constants');
-const { constructPokemonOptions, PokeAPI } = require('../util/PokeAPI');
+const{ SlashCommandBuilder } = require('@discordjs/builders');
+const{ Collection, EmbedBuilder, ComponentType, ButtonStyle } = require('discord.js');
+const{ PaginatorEvents, ActionRowPaginator } = require('../../../src');
+const{ basicEndHandler, basicErrorHandler } = require('../util/Constants');
+const{ constructPokemonOptions, PokeAPI } = require('../util/PokeAPI');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -18,33 +18,33 @@ module.exports = {
       {
         components: [
           {
-            type: 'BUTTON',
+            type: ComponentType.Button,
             emoji: '⏪',
             label: 'start',
-            style: 'SECONDARY',
+            style: ButtonStyle.Secondary,
           },
           {
-            type: 'BUTTON',
+            type: ComponentType.Button,
             label: `-${SELECT_LIMIT}`,
-            style: 'PRIMARY',
+            style: ButtonStyle.Primary,
           },
           {
-            type: 'BUTTON',
+            type: ComponentType.Button,
             label: `+${SELECT_LIMIT}`,
-            style: 'PRIMARY',
+            style: ButtonStyle.Primary,
           },
           {
-            type: 'BUTTON',
+            type: ComponentType.Button,
             emoji: '⏩',
             label: 'end',
-            style: 'SECONDARY',
+            style: ButtonStyle.Secondary,
           },
         ],
       },
       {
         components: [
           {
-            type: 'SELECT_MENU',
+            type: ComponentType.SelectMenu,
             placeholder: 'Currently viewing #001 - #025',
           },
         ],
@@ -61,7 +61,7 @@ module.exports = {
 
     // eslint-disable-next-line no-shadow
     const identifiersResolver = async ({ interaction, paginator }) => {
-      if (interaction.componentType === 'BUTTON') {
+      if (interaction.componentType === ComponentType.Button) {
         let { selectOptionsIdentifier } = paginator.currentIdentifiers;
         switch (interaction.component.label) {
           case 'start':
@@ -94,7 +94,7 @@ module.exports = {
           ...paginator.currentIdentifiers,
           selectOptionsIdentifier,
         };
-      } else if (interaction.componentType === 'SELECT_MENU') {
+      } else if (interaction.componentType === ComponentType.SelectMenu) {
         return {
           ...paginator.currentIdentifiers,
           pageIdentifier: interaction.values[0],
@@ -109,19 +109,28 @@ module.exports = {
       if (newPageIdentifier !== currentPageIdentifier) {
         // Pokemon name
         const pokemonResult = await PokeAPI.getPokemon(newPageIdentifier);
-        const newEmbed = new MessageEmbed()
+        const newEmbed = new EmbedBuilder()
           .setTitle(`Pokedex #${`${pokemonResult.id}`.padStart(3, '0')} - ${newPageIdentifier}`)
           .setDescription(`Viewing ${newPageIdentifier}`)
           .setThumbnail(pokemonResult.sprites.front_default)
-          .addField('Types', pokemonResult.types.map(typeObject => typeObject.type.name).join(', '), true)
-          .addField(
-            'Abilities',
-            pokemonResult.abilities.map(abilityObject => abilityObject.ability.name).join(', '),
-            false,
-          );
+          .addFields([
+            {
+              name: 'Types',
+              value: pokemonResult.types.map(typeObject => typeObject.type.name).join(', '),
+              inline: true,
+            },
+            {
+              name: 'Abilities',
+              value: pokemonResult.abilities.map(abilityObject => abilityObject.ability.name).join(', '),
+              inline: false,
+            },
+          ]);
+        const pokemonEmbedFields = [];
         pokemonResult.stats.forEach(statObject => {
-          newEmbed.addField(statObject.stat.name, `${statObject.base_stat}`, true);
+
+          newEmbed.push({ name: statObject.stat.name, value: `${statObject.base_stat}`, inline: true});
         });
+        newEmbed.addFields(pokemonEmbedFields);
         return newEmbed;
       }
       return paginator.currentPage;

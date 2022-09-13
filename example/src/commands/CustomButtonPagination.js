@@ -1,6 +1,7 @@
 'use strict';
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { ButtonStyle } = require('discord.js');
 const { PaginatorEvents, ButtonPaginator } = require('../../../src');
 const { basicEndHandler, basicErrorHandler, pages } = require('../util/Constants');
 
@@ -13,7 +14,7 @@ module.exports = {
       {
         label: 'First',
         emoji: '⏪',
-        style: 'SECONDARY',
+        style: ButtonStyle.Secondary,
         disabled: true,
       },
       {
@@ -22,7 +23,7 @@ module.exports = {
       },
       {
         label: 'Delete',
-        style: 'DANGER',
+        style: ButtonStyle.Danger,
         disabled: true,
       },
       {
@@ -32,7 +33,7 @@ module.exports = {
       {
         label: 'Last',
         emoji: '⏩',
-        style: 'SECONDARY',
+        style: ButtonStyle.Secondary,
         disabled: true,
       },
     ];

@@ -2,8 +2,10 @@
 
 const fs = require('fs');
 const path = require('path');
-const { Client, Intents, Collection } = require('discord.js');
-const config = require('../config');
+const{ Client, GatewayIntentBits, Collection } = require('discord.js');
+const { isInteractionCommand } = require('./util/interaction-checks.js')
+const config = require('../config.js');
+
 
 process.on('uncaughtException', err => {
   console.log('UNCAUGHT EXCEPTION:\n');
@@ -11,7 +13,7 @@ process.on('uncaughtException', err => {
 });
 
 const client = new Client({
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
 });
 
 client.commands = new Collection();
@@ -19,17 +21,16 @@ const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 const commands = [];
 
-for (const file of commandFiles) {
-  const command = require(path.join(commandsPath, file));
-  // Set a new item in the Collection
-  // with the key as the command name and the value as the exported module
-  client.commands.set(command.data.name, command);
-  commands.push(command.data.toJSON());
-}
-
 client.once('ready', () => {
   console.log('Ready!');
   try {
+    for (const file of commandFiles) {
+      const command = require(path.join(commandsPath, file));
+      // Set a new item in the Collection
+      // with the key as the command name and the value as the exported module
+      client.commands.set(command.data.name, command);
+      commands.push(command.data.toJSON());
+    }
     console.log('Started refreshing application (/) commands.');
     for (const guild of client.guilds.cache.values()) {
       guild.commands
@@ -62,7 +63,7 @@ client.once('ready', () => {
 });
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isCommand()) return;
+  if (!isInteractionCommand(interaction)) return;
 
   const { commandName } = interaction;
 
@@ -73,7 +74,11 @@ client.on('interactionCreate', async interaction => {
     await client.commands.get(commandName).execute(interaction);
   } catch (error) {
     console.error(error);
-    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    const errorMessage = { content: 'There was an error while executing this command!', ephemeral: true }
+    if (interaction.isRepliable)
+      await interaction.reply(errorMessage);
+    else
+      await interaction.followUp(errorMessage);
   }
 });
 

@@ -1,5 +1,6 @@
 'use strict';
 
+const { ComponentType } = require('discord-api-types/v10');
 const ActionRowPaginatorOptions = require('./ActionRowPaginatorOptions');
 
 class SelectPaginatorOptions extends ActionRowPaginatorOptions {
@@ -9,7 +10,7 @@ class SelectPaginatorOptions extends ActionRowPaginatorOptions {
         {
           components: [
             {
-              type: 'SELECT_MENU',
+              type: ComponentType.SelectMenu,
             },
           ],
         },
@@ -22,4 +23,4 @@ class SelectPaginatorOptions extends ActionRowPaginatorOptions {
   }
 }
 
-module.exports = SelectPaginatorOptions;
+module.exports = ActionRowPaginatorOptions;

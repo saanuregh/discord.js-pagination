@@ -1,17 +1,18 @@
 'use strict';
 
-const { Util } = require('discord.js');
+const { mergeDefault } = require('discord.js');
+const { ComponentType } = require('discord-api-types/v10');
 const ActionRowPaginator = require('./ActionRowPaginator');
 const ButtonPaginatorOptions = require('../util/ButtonPaginatorOptions');
 
 class ButtonPaginator extends ActionRowPaginator {
   constructor(interaction, options) {
-    super(interaction, Util.mergeDefault(ButtonPaginatorOptions.createDefault(), options));
+    super(interaction, mergeDefault(ButtonPaginatorOptions.createDefault(), options));
     // Buttons may also be set via the messageActionRows prop.
     if (this.options.buttons) {
       const buttonRows = [[]];
       for (const button of this.options.buttons) {
-        button.type = 'BUTTON';
+        button.type = ComponentType.Button;
         const isLink = button.url !== undefined;
         if (!isLink) {
           button.customId = button.customId

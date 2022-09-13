@@ -1,8 +1,10 @@
 'use strict';
+const { SelectMenuOptionBuilder } = require('discord.js');
 const fetch = require('node-fetch');
+
 const pokeApiUrl = 'https://pokeapi.co/api/v2/';
 
-module.exports.constructPokemonOptions = pokemonApiResponse => {
+const constructPokemonOptions = pokemonApiResponse => {
   const pokemonOptions = [];
   pokemonApiResponse.forEach(pokemon => {
     const splitPokemonUrl = pokemon.url.split('/');
@@ -15,7 +17,9 @@ module.exports.constructPokemonOptions = pokemonApiResponse => {
   return pokemonOptions;
 };
 
-module.exports.PokeAPI = {
+
+
+const PokeAPI = {
   getType: type => fetch(`${pokeApiUrl}type/${type}`).then(res => res.json()),
   getTypes: () =>
     fetch(`${pokeApiUrl}type/`)
@@ -33,3 +37,5 @@ module.exports.PokeAPI = {
       .then(res => res.json())
       .then(jsonData => jsonData.results),
 };
+
+module.exports = { constructPokemonOptions, PokeAPI }

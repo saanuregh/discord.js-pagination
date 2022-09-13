@@ -1,7 +1,7 @@
 'use strict';
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { Collection, MessageEmbed } = require('discord.js');
+const { Collection, EmbedBuilder, ComponentType, ButtonStyle, SelectMenuOptionBuilder } = require('discord.js');
 const { PaginatorEvents, ActionRowPaginator } = require('../../../src');
 const { basicEndHandler, basicErrorHandler } = require('../util/Constants');
 const { constructPokemonOptions, PokeAPI } = require('../util/PokeAPI');
@@ -40,7 +40,7 @@ module.exports = {
       {
         components: [
           {
-            type: 'SELECT_MENU',
+            type: ComponentType.SelectMenu,
             placeholder: 'Select a type to filter the Pokemon',
             options: pokemonTypeSelectOptions,
             customId: 'pokemon-type',
@@ -52,7 +52,7 @@ module.exports = {
       {
         components: [
           {
-            type: 'SELECT_MENU',
+            type: ComponentType.SelectMenu,
             placeholder: `Currently viewing #001 - #025 of ${totalPokemonOfType}`,
             options: pokemonSelectOptions.get(INITIAL_SELECT_IDENTIFIER),
             customId: 'pokemon-select',
@@ -64,26 +64,26 @@ module.exports = {
       {
         components: [
           {
-            type: 'BUTTON',
+            type: ComponentType.Button,
             emoji: '⏪',
             label: 'start',
-            style: 'SECONDARY',
+            style: ButtonStyle.Secondary,
           },
           {
-            type: 'BUTTON',
+            type: ComponentType.Button,
             label: `-${SELECT_LIMIT}`,
-            style: 'PRIMARY',
+            style: ButtonStyle.Primary,
           },
           {
-            type: 'BUTTON',
+            type: ComponentType.Button,
             label: `+${SELECT_LIMIT}`,
-            style: 'PRIMARY',
+            style: ButtonStyle.Primary,
           },
           {
-            type: 'BUTTON',
+            type: ComponentType.Button,
             emoji: '⏩',
             label: 'end',
-            style: 'SECONDARY',
+            style: ButtonStyle.Secondary,
           },
         ],
       },
@@ -171,9 +171,9 @@ module.exports = {
     // eslint-disable-next-line no-shadow
     const identifiersResolver = async ({ interaction, paginator }) => {
       let newIdentifiers = {};
-      if (interaction.componentType === 'BUTTON') {
+      if (interaction.componentType === ComponentType.Button) {
         newIdentifiers = await handleButtonIdentifier(interaction.component.label, paginator);
-      } else if (interaction.componentType === 'SELECT_MENU') {
+      } else if (interaction.componentType === ComponentType.SelectMenu) {
         if (interaction.component.customId.includes('pokemon-type')) {
           const { pokemonTypeIdentifier: currentPokemonType } = paginator.currentIdentifiers;
           const newPokemonType = interaction.values[0];
@@ -196,20 +196,28 @@ module.exports = {
         try {
           // Pokemon name
           const pokemonResult = await PokeAPI.getPokemon(newPageIdentifier);
-          const newEmbed = new MessageEmbed()
+          const newEmbed = new EmbedBuilder()
             .setTitle(`Pokedex #${`${pokemonResult.id}`.padStart(3, '0')} - ${newPageIdentifier}`)
             .setDescription(`Viewing ${newPageIdentifier}`)
             .setThumbnail(pokemonResult.sprites.front_default)
-            .setFooter('Information fetched from https://pokeapi.co/')
-            .addField('Types', pokemonResult.types.map(typeObject => typeObject.type.name).join(', '), true)
-            .addField(
-              'Abilities',
-              pokemonResult.abilities.map(abilityObject => abilityObject.ability.name).join(', '),
-              false,
-            );
+            .setFooter({ text: 'Information fetched from https://pokeapi.co/' })
+            .addFields([
+              {
+                name: 'Types',
+                value: pokemonResult.types.map(typeObject => typeObject.type.name).join(', '),
+                inline: true,
+              },
+              {
+                name: 'Abilities',
+                value: pokemonResult.abilities.map(abilityObject => abilityObject.ability.name).join(', '),
+                inline: false,
+              },
+            ]);
+          const pokemonEmbedFields = [];
           pokemonResult.stats.forEach(statObject => {
-            newEmbed.addField(statObject.stat.name, `${statObject.base_stat}`, true);
+            pokemonEmbedFields.push({ name: statObject.stat.name, value: `${statObject.base_stat}`, inline: true});
           });
+          newEmbed.addFields(pokemonEmbedFields);
           return newEmbed;
         } catch (error) {
           console.log(`Error in pageEmbedResolver\n${error}`);

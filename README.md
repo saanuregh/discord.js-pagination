@@ -6,7 +6,7 @@
 </div>
 
 # discord.js-pagination
-A simple utility (or advanced - it's your choice) to paginate discord embeds. Built on discord.js@^13.0.0.
+A simple utility (or advanced - it's your choice) to paginate discord embeds. Built on discord.js@^14.0.0 and discord-api-types@^0.37.9.
 
 To see how the example paginations look, checkout the [example bot](example/README.md) (the readme has gifs)!
 
@@ -48,7 +48,7 @@ For the below examples, the pages can be constructed as per the [example bot](ex
 ```js
 const pages = [];
 for (let i = 0; i 10; i++) {
-  const pageEmbed = new MessageEmbed();
+  const pageEmbed = new EmbedBuilder();
   pageEmbed
     .setTitle(`This embed is index ${i}!`)
     .setDescription(`That means it is page #${i + 1}`);
@@ -65,7 +65,7 @@ You will of course want to construct your own pages.
 This allows pages to be navigated by reacting to a message.
 
 ```js
-const { PaginatorEvents, ReactionPaginator } = require('@psibean/discord.js-pagination');
+import { PaginatorEvents, ReactionPaginator } from '@psibean/discord.js-pagination';
 
 const reactionPaginator = new ReactionPaginator(interaction, { pages })
 	.on(PaginatorEvents.COLLECT_ERROR, ({ error }) => console.log(error));
@@ -77,7 +77,7 @@ await reactionPaginator.send();
 This allows pages to be navigated by clicking buttons.
 
 ```js
-const { ButtonPaginator } = require('@psibean/discord.js-pagination');
+import { ButtonPaginator } from '@psibean/discord.js-pagination';
 
 const buttonPaginator = new ButtonPaginator(interaction, { pages });
 await buttonPaginator.send();
@@ -90,7 +90,7 @@ This allows pages to be navigated using a select menu.
 For the select pagination embed you'll need to supply an array of [MessageSelectOptions](https://discord.js.org/#/docs/main/stable/typedef/MessageSelectOption) to the pagination options via `selectOptions`. By default the pagination will map the value of the provided options to your pages index based on their ordering. Then the page change will be determined by the selected value and this mapping. If you want to map your select options and pages differently you can provide the `pagesMap` ({ selectOptions, paginator }) function which should return a dictionary. You'll then want to provide a custom `pageIndexResolver`.
 
 ```js
-const { SelectPaginator } = require('@psibean/discord.js-pagination');
+import { SelectPaginator } from '@psibean/discord.js-pagination';
 
 // The default pagesMap will map these option values to the index
 const selectOptions = [];
@@ -245,7 +245,7 @@ For the ActionRowPaginator, ButtonPaginator and SelectPaginator, defaults to:
 {
 	idle: 6e4,
 	filter: ({ interaction, paginator }) =>
-		interaction.isMessageComponent() &&
+		interaction.type === InteractionType.MessageComponent; &&
 		interaction.component.customId.startsWith(paginator.customIdPrefix) &&
 		interaction.user === paginator.user &&
 		!interaction.user.bot,
@@ -328,7 +328,7 @@ Defaults to:
 
 This is the function used to set the footer of each page. If not provided the embeds will use whatever footers were originally set on them.
 
-(paginator): Promise&lt;string&gt; | string
+(paginator): Promise&lt;EmbedFooterOptions&gt; | EmbedFooterOptions
 - **paginator** : This is a reference to the paginator instance.
 
 Defaults to undefined. Optional.
@@ -353,14 +353,14 @@ These options are common to the `ActionRowPaginator`, `ButtonPaginator`, and `Se
 
 ### messageActionRows
 
-An array of messageActionRows (they will have their type set to ACTION_ROW).
+An array of messageActionRows (they will have their type set to ComponentType.ActionRow).
 Any components provided up front will have their customId generated.
 
 Defaults to:
 ```
 [
 	{
-		type: 'ACTION_ROW',
+		type: ComponentType.ActionRow,
 		components: [],
 	},
 ],
@@ -427,7 +427,7 @@ If a function:
 Events can be imported by:
 
 ```
-const { PaginatorEvents } = require('@psibean/discord.js-pagination');
+import { PaginatorEvents } from '@psibean/discord.js-pagination';
 ```
 And accessed by `PaginatorEvents#EventName`
 
