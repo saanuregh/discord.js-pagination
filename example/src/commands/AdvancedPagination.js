@@ -159,7 +159,7 @@ module.exports = {
             isAll
               ? pokemonList
               : pokemonList.slice(INITIAL_SELECT_IDENTIFIER, SELECT_LIMIT).map(pokemonEntry => pokemonEntry.pokemon),
-          ),
+          ).map(option => option),
         );
         return { selectOptionsIdentifier: INITIAL_SELECT_IDENTIFIER, pokemonTypeIdentifier: pokemonType };
       } catch (error) {
@@ -245,7 +245,7 @@ module.exports = {
         newSelectOptionsIdentifier !== currentSelectOptionsIdentifier ||
         newPokemonTypeIdentifier !== currentPokemonTypeIdentifier
       ) {
-        paginator.getComponent(1, 0).options = pokemonSelectOptions.get(newSelectOptionsIdentifier);
+        paginator.getComponent(1, 0).setOptions(pokemonSelectOptions.get(newSelectOptionsIdentifier));
         const endOffset = newSelectOptionsIdentifier * SELECT_LIMIT + SELECT_LIMIT;
         paginator.getComponent(1, 0).placeholder = `Currently viewing #${`${
           newSelectOptionsIdentifier * SELECT_LIMIT + 1
